@@ -167,19 +167,31 @@
 <script>
 const CATEGORY_COLOR = {
   "景點": "#2196F3", "古蹟": "#795548", "美食": "#FF5722",
-  "咖啡廳": "#8D6E63", "廟宇": "#9C27B0", "其他": "#607D8B"
+  "甜點": "#E91E63", "咖啡廳": "#8D6E63", "廟宇": "#9C27B0", "其他": "#607D8B"
 };
 
 const DEFAULTS = [
-  { id: 1, name: "淡水日落碼頭", category: "景點", rating: 4.5, duration: "30–60 分鐘", price: "免費", tips: "台灣十大夕陽之一，傍晚 17:30 後最美", transport: "淡水捷運站步行 5 分鐘" },
-  { id: 2, name: "紅毛城", category: "古蹟", rating: 4.4, duration: "1–1.5 小時", price: "全票 NT$80，優待票 NT$40", tips: "荷蘭時期建造，台灣保存最完整的西式古堡", transport: "淡水站搭紅 26 公車，紅毛城站下車" },
-  { id: 3, name: "漁人碼頭", category: "景點", rating: 4.3, duration: "1–1.5 小時", price: "免費（餐廳人均 NT$200–400）", tips: "黃昏時分景色最美，可看夕陽與情人橋", transport: "淡水站搭紅 26 公車約 15 分鐘" },
-  { id: 4, name: "真理大學校園", category: "景點", rating: 4.3, duration: "30–45 分鐘", price: "免費", tips: "歐式建築，牛津學堂為台灣最早西式學校", transport: "紅毛城步行 5 分鐘" },
-  { id: 5, name: "淡水老街", category: "景點", rating: 4.2, duration: "1.5–2 小時", price: "免費入場（小吃 NT$30–80）", tips: "必吃：阿給、魚酥、鐵蛋、淡水魚丸", transport: "淡水捷運站步行 3 分鐘" },
-  { id: 6, name: "淡水天元宮", category: "廟宇", rating: 4.2, duration: "45 分鐘–1 小時", price: "免費", tips: "三月份吉野櫻盛開，是賞櫻名所", transport: "淡水站搭指南客運 862，天元宮站下車" },
-  { id: 7, name: "得忌利士洋行", category: "咖啡廳", rating: 4.2, duration: "1–1.5 小時", price: "飲品 NT$150–250，輕食 NT$200–350", tips: "百年洋行改建，河景絕佳，適合下午茶", transport: "淡水老街旁，中正路旁" },
-  { id: 8, name: "滬尾砲台", category: "古蹟", rating: 4.1, duration: "45 分鐘–1 小時", price: "免費", tips: "劉銘傳督建，可俯瞰淡水河口全景", transport: "紅毛城步行約 10 分鐘" },
-  { id: 9, name: "阿給原創老店", category: "美食", rating: 4.1, duration: "20–30 分鐘", price: "阿給 NT$35，魚丸湯 NT$30", tips: "在地 60 年老店，老街必吃第一名", transport: "老街巷內，中正路 209 巷" },
+  { id: 1,  name: "淡水日落碼頭",       category: "景點",  rating: 4.5, duration: "30–60 分鐘",  price: "免費",                              tips: "台灣十大夕陽之一，傍晚 17:30 後最美",        transport: "淡水捷運站步行 5 分鐘" },
+  { id: 2,  name: "紅毛城",             category: "古蹟",  rating: 4.4, duration: "1–1.5 小時",  price: "全票 NT$80，優待票 NT$40",           tips: "荷蘭時期建造，台灣保存最完整的西式古堡",    transport: "淡水站搭紅 26 公車，紅毛城站下車" },
+  { id: 3,  name: "漁人碼頭",           category: "景點",  rating: 4.3, duration: "1–1.5 小時",  price: "免費（餐廳人均 NT$200–400）",        tips: "黃昏時分景色最美，可看夕陽與情人橋",        transport: "淡水站搭紅 26 公車約 15 分鐘" },
+  { id: 4,  name: "真理大學校園",       category: "景點",  rating: 4.3, duration: "30–45 分鐘",  price: "免費",                              tips: "歐式建築，牛津學堂為台灣最早西式學校",        transport: "紅毛城步行 5 分鐘" },
+  { id: 5,  name: "淡水老街",           category: "景點",  rating: 4.2, duration: "1.5–2 小時",  price: "免費入場（小吃 NT$30–80）",          tips: "必吃：阿給、魚酥、鐵蛋、淡水魚丸",          transport: "淡水捷運站步行 3 分鐘" },
+  { id: 6,  name: "淡水天元宮",         category: "廟宇",  rating: 4.2, duration: "45 分鐘–1 小時", price: "免費",                           tips: "三月份吉野櫻盛開，是賞櫻名所",              transport: "淡水站搭指南客運 862，天元宮站下車" },
+  { id: 7,  name: "得忌利士洋行",       category: "咖啡廳", rating: 4.2, duration: "1–1.5 小時",  price: "飲品 NT$150–250，輕食 NT$200–350",  tips: "百年洋行改建，河景絕佳，適合下午茶",        transport: "淡水老街旁，中正路旁" },
+  { id: 8,  name: "滬尾砲台",           category: "古蹟",  rating: 4.1, duration: "45 分鐘–1 小時", price: "免費",                           tips: "劉銘傳督建，可俯瞰淡水河口全景",            transport: "紅毛城步行約 10 分鐘" },
+  { id: 9,  name: "阿給原創老店",       category: "美食",  rating: 4.1, duration: "20–30 分鐘",  price: "阿給 NT$35，魚丸湯 NT$30",           tips: "在地 60 年老店，老街必吃第一名",            transport: "老街巷內，中正路 209 巷" },
+  { id: 10, name: "丹頂豆",             category: "甜點",  rating: 4.9, duration: "20–30 分鐘",  price: "NT$40–100",   hours: "11:00–18:00",  tips: "社群最高評分 4.9★，必吃甜點",              transport: "淡水老街附近" },
+  { id: 11, name: "4F小飯館",           category: "美食",  rating: 4.7, duration: "1–1.5 小時",  price: "人均 NT$800–1,600", hours: "11:30–21:00", tips: "高評分餐廳，建議事先預訂",                transport: "淡水區" },
+  { id: 12, name: "黑殿飯店",           category: "美食",  rating: 4.6, duration: "45–60 分鐘",  price: "人均 NT$150–250", hours: "11:00–20:30", tips: "脊村排骨飯，社群第1名，多平台高讚推薦",    transport: "淡水區" },
+  { id: 13, name: "讓靜甜點工作室",     category: "甜點",  rating: 4.6, duration: "45–60 分鐘",  price: "NT$60–150",   hours: "13:00–19:00",  tips: "精緻手作甜點，IG 7.4K讚，社群第7名",        transport: "淡水區" },
+  { id: 14, name: "貳樓餐廳",           category: "咖啡廳", rating: 4.6, duration: "1–1.5 小時", price: "人均 NT$200–400", hours: "10:00–21:00", tips: "景觀河景餐廳，適合下午茶與晚餐",           transport: "淡水區" },
+  { id: 15, name: "緣味古早味現烤蛋糕", category: "甜點",  rating: 4.5, duration: "20–30 分鐘",  price: "NT$110–150",  hours: "11:00–20:30",  tips: "韓國人瘋買，IG 180K讚，社群第2名",          transport: "淡水老街" },
+  { id: 16, name: "文森食堂",           category: "咖啡廳", rating: 4.5, duration: "1 小時",     price: "人均 NT$200–350", hours: "11:00–20:00", tips: "景觀咖啡廳，河岸美景",                    transport: "淡水區" },
+  { id: 17, name: "天天咬吐司",         category: "美食",  rating: 4.5, duration: "20–30 分鐘",  price: "NT$55–95",    hours: "06:15–13:30",  tips: "早餐必吃，IG 45K讚，社群第4名",             transport: "淡水英專路附近" },
+  { id: 18, name: "阿忠花生捲冰淇淋",   category: "甜點",  rating: 4.3, duration: "15–20 分鐘",  price: "NT$60–80",                          tips: "排隊必吃，IG 185K讚，老街名物",             transport: "淡水老街" },
+  { id: 19, name: "朝日夫婦冰品",       category: "甜點",  rating: 4.3, duration: "20–30 分鐘",  price: "NT$80–120",                         tips: "宵夜首選，3天行程安排兩次",                 transport: "淡水區" },
+  { id: 20, name: "麻吉奶奶餅奶麻糬",   category: "美食",  rating: 4.2, duration: "15–20 分鐘",  price: "NT$30–60",                          tips: "老街經典，多平台推薦",                      transport: "淡水老街" },
+  { id: 21, name: "半坪屋手工糯米腸",   category: "美食",  rating: 4.2, duration: "15–20 分鐘",  price: "NT$50–80",                          tips: "60年老店，多平台推薦",                      transport: "淡水老街" },
 ];
 
 const KEY = "tamsui_attractions";
@@ -209,10 +221,11 @@ function fmt(min) {
 
 function slotOf(a) {
   const evening = /日落|夕陽|碼頭|漁人|港口/.test(a.name);
-  if (evening) return 4;
-  if (a.category === "咖啡廳") return 3;
+  if (evening) return 5;
+  if (a.category === "咖啡廳") return 4;
+  if (a.category === "甜點")   return 3;
   if (a.category === "美食")   return 2;
-  return 1; // 景點、古蹟、廟宇、其他 → 上午
+  return 1; // 景點、古蹟、廟宇 → 上午
 }
 
 function optimizeItinerary(data) {
@@ -296,6 +309,7 @@ function render() {
         </div>
         <div class="card-body">
           <h3>${a.name}</h3>
+          ${a.hours     ? `<div class="info-row"><span class="icon">🕐</span><span>${a.hours}</span></div>` : ""}
           ${a.duration  ? `<div class="info-row"><span class="icon">⏱</span><span>${a.duration}</span></div>` : ""}
           ${a.price     ? `<div class="info-row"><span class="icon">💰</span><span>${a.price}</span></div>` : ""}
           ${a.transport ? `<div class="info-row"><span class="icon">🚌</span><span>${a.transport}</span></div>` : ""}
