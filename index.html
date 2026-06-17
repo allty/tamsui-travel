@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>淡水一日遊計畫</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Microsoft JhengHei", sans-serif; background: #f0f4f8; color: #333; }
+
+  header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 36px 20px; text-align: center; }
+  header h1 { font-size: 2rem; margin-bottom: 6px; }
+  header p { opacity: 0.85; font-size: 0.9rem; }
+
+  section { max-width: 1060px; margin: 28px auto; padding: 0 16px; }
+  h2 { font-size: 1.2rem; margin-bottom: 14px; color: #1a73e8; border-left: 4px solid #1a73e8; padding-left: 10px; }
+
+  /* 行程 */
+  .itinerary { display: flex; flex-direction: column; gap: 6px; }
+  .step { display: flex; align-items: center; gap: 12px; background: white; border-radius: 8px; padding: 10px 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); position: relative; }
+  .step::before { content: ""; position: absolute; left: 52px; top: 100%; width: 2px; height: 6px; background: #cdd7e8; }
+  .step:last-child::before { display: none; }
+  .time { font-weight: bold; color: #1a73e8; min-width: 52px; font-size: 0.9rem; flex-shrink: 0; }
+  .step-name { flex: 1; font-size: 0.95rem; }
+  .dur-badge { font-size: 0.75rem; color: #888; background: #f0f4f8; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .step-return { color: #888; font-style: italic; }
+
+  /* 工具列 */
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
+  .filter-btn { padding: 6px 14px; border: 2px solid #1a73e8; border-radius: 20px; background: white; color: #1a73e8; cursor: pointer; font-size: 0.85rem; transition: all .15s; }
+  .filter-btn.active, .filter-btn:hover { background: #1a73e8; color: white; }
+  .btn-add { padding: 8px 20px; background: #34a853; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: bold; white-space: nowrap; }
+  .btn-add:hover { background: #2d8f47; }
+  .btn-reset { padding: 8px 14px; background: white; color: #999; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+  .btn-reset:hover { color: #e53935; border-color: #e53935; }
+
+  /* 卡片 */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
+  .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.09); transition: transform .2s; }
+  .card:hover { transform: translateY(-3px); }
+  .card-header { padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; color: white; }
+  .category-tag { font-size: 0.78rem; background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 10px; }
+  .rating-tag { font-size: 0.95rem; font-weight: bold; }
+  .card-body { padding: 14px; }
+  .card-body h3 { font-size: 1.05rem; margin-bottom: 10px; }
+  .info-row { display: flex; gap: 8px; margin-bottom: 5px; font-size: 0.85rem; color: #555; }
+  .icon { width: 20px; text-align: center; flex-shrink: 0; }
+  .tips-box { margin-top: 10px; font-size: 0.83rem; color: #1a73e8; background: #e8f0fe; padding: 7px 10px; border-radius: 6px; line-height: 1.5; }
+  .card-actions { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid #f0f0f0; }
+  .btn-edit { flex: 1; padding: 6px; border: 1px solid #1a73e8; color: #1a73e8; background: white; border-radius: 6px; cursor: pointer; font-size: 0.82rem; }
+  .btn-edit:hover { background: #e8f0fe; }
+  .btn-del { flex: 1; padding: 6px; border: 1px solid #e53935; color: #e53935; background: white; border-radius: 6px; cursor: pointer; font-size: 0.82rem; }
+  .btn-del:hover { background: #fce8e6; }
+
+  /* 預算表 */
+  table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.09); }
+  td { padding: 11px 18px; border-bottom: 1px solid #f0f0f0; font-size: 0.93rem; }
+  tr:last-child td { border: none; font-weight: bold; background: #e8f0fe; color: #1a73e8; }
+
+  /* Modal */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
+  .overlay.open { display: flex; }
+  .modal { background: white; border-radius: 14px; padding: 28px; width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+  .modal h3 { margin-bottom: 18px; font-size: 1.15rem; color: #1a73e8; }
+  .form-group { margin-bottom: 14px; }
+  label { display: block; font-size: 0.85rem; color: #666; margin-bottom: 4px; }
+  input, select, textarea { width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.92rem; font-family: inherit; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #1a73e8; }
+  textarea { resize: vertical; min-height: 60px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn-save { flex: 1; padding: 10px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: bold; }
+  .btn-save:hover { background: #1557b0; }
+  .btn-cancel { padding: 10px 18px; background: white; color: #666; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 0.95rem; }
+
+  footer { text-align: center; padding: 20px; color: #aaa; font-size: 0.78rem; }
+  .empty-msg { text-align: center; color: #aaa; padding: 40px; grid-column: 1/-1; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>淡水一日遊</h1>
+  <p id="subtitle">載入中…</p>
+</header>
+
+<section>
+  <h2>建議行程 <span id="itinerary-note" style="font-size:0.78rem;color:#888;font-weight:normal;margin-left:8px;"></span></h2>
+  <div class="itinerary" id="itinerary"></div>
+</section>
+
+<section>
+  <h2>景點管理</h2>
+  <div class="toolbar">
+    <div class="filters" id="filters"></div>
+    <button class="btn-reset" onclick="resetData()">還原預設</button>
+    <button class="btn-add" onclick="openModal()">+ 新增景點</button>
+  </div>
+  <div class="cards" id="cards"></div>
+</section>
+
+<section>
+  <h2>預算估算</h2>
+  <table>
+    <tr><td>門票（紅毛城）</td><td>NT$80</td></tr>
+    <tr><td>早午餐老街小吃</td><td>NT$150–200</td></tr>
+    <tr><td>下午茶</td><td>NT$200–300</td></tr>
+    <tr><td>漁人碼頭晚餐</td><td>NT$300–500</td></tr>
+    <tr><td>交通（捷運＋公車）</td><td>NT$50–100</td></tr>
+    <tr><td>合計</td><td>NT$780–1,180</td></tr>
+  </table>
+</section>
+
+<footer>資料儲存於瀏覽器本機（localStorage），清除瀏覽器資料前永久保留</footer>
+
+<!-- 新增 / 編輯 Modal -->
+<div class="overlay" id="overlay" onclick="closeOnBg(event)">
+  <div class="modal">
+    <h3 id="modal-title">新增景點</h3>
+    <div class="form-group">
+      <label>景點名稱 *</label>
+      <input id="f-name" type="text" placeholder="例：淡水老街">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>類別 *</label>
+        <select id="f-category">
+          <option>景點</option>
+          <option>古蹟</option>
+          <option>美食</option>
+          <option>咖啡廳</option>
+          <option>廟宇</option>
+          <option>其他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>評分（1.0–5.0）*</label>
+        <input id="f-rating" type="number" min="1" max="5" step="0.1" placeholder="4.2">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>建議停留時間</label>
+        <input id="f-duration" type="text" placeholder="例：1–2 小時">
+      </div>
+      <div class="form-group">
+        <label>費用</label>
+        <input id="f-price" type="text" placeholder="例：免費 / NT$80">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>交通方式</label>
+      <input id="f-transport" type="text" placeholder="例：淡水站步行 5 分鐘">
+    </div>
+    <div class="form-group">
+      <label>小提示</label>
+      <textarea id="f-tips" placeholder="推薦必吃、最佳時段…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">取消</button>
+      <button class="btn-save" onclick="saveAttraction()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CATEGORY_COLOR = {
+  "景點": "#2196F3", "古蹟": "#795548", "美食": "#FF5722",
+  "咖啡廳": "#8D6E63", "廟宇": "#9C27B0", "其他": "#607D8B"
+};
+
+const DEFAULTS = [
+  { id: 1, name: "淡水日落碼頭", category: "景點", rating: 4.5, duration: "30–60 分鐘", price: "免費", tips: "台灣十大夕陽之一，傍晚 17:30 後最美", transport: "淡水捷運站步行 5 分鐘" },
+  { id: 2, name: "紅毛城", category: "古蹟", rating: 4.4, duration: "1–1.5 小時", price: "全票 NT$80，優待票 NT$40", tips: "荷蘭時期建造，台灣保存最完整的西式古堡", transport: "淡水站搭紅 26 公車，紅毛城站下車" },
+  { id: 3, name: "漁人碼頭", category: "景點", rating: 4.3, duration: "1–1.5 小時", price: "免費（餐廳人均 NT$200–400）", tips: "黃昏時分景色最美，可看夕陽與情人橋", transport: "淡水站搭紅 26 公車約 15 分鐘" },
+  { id: 4, name: "真理大學校園", category: "景點", rating: 4.3, duration: "30–45 分鐘", price: "免費", tips: "歐式建築，牛津學堂為台灣最早西式學校", transport: "紅毛城步行 5 分鐘" },
+  { id: 5, name: "淡水老街", category: "景點", rating: 4.2, duration: "1.5–2 小時", price: "免費入場（小吃 NT$30–80）", tips: "必吃：阿給、魚酥、鐵蛋、淡水魚丸", transport: "淡水捷運站步行 3 分鐘" },
+  { id: 6, name: "淡水天元宮", category: "廟宇", rating: 4.2, duration: "45 分鐘–1 小時", price: "免費", tips: "三月份吉野櫻盛開，是賞櫻名所", transport: "淡水站搭指南客運 862，天元宮站下車" },
+  { id: 7, name: "得忌利士洋行", category: "咖啡廳", rating: 4.2, duration: "1–1.5 小時", price: "飲品 NT$150–250，輕食 NT$200–350", tips: "百年洋行改建，河景絕佳，適合下午茶", transport: "淡水老街旁，中正路旁" },
+  { id: 8, name: "滬尾砲台", category: "古蹟", rating: 4.1, duration: "45 分鐘–1 小時", price: "免費", tips: "劉銘傳督建，可俯瞰淡水河口全景", transport: "紅毛城步行約 10 分鐘" },
+  { id: 9, name: "阿給原創老店", category: "美食", rating: 4.1, duration: "20–30 分鐘", price: "阿給 NT$35，魚丸湯 NT$30", tips: "在地 60 年老店，老街必吃第一名", transport: "老街巷內，中正路 209 巷" },
+];
+
+const KEY = "tamsui_attractions";
+let editingId = null;
+let activeFilter = "all";
+
+// ── 行程最佳化 ────────────────────────────────────────────────────────────────
+function parseDuration(str) {
+  if (!str) return 60;
+  const mixed = str.match(/(\d+)\s*分鐘[–\-](\d+\.?\d*)\s*小時/);
+  if (mixed) return (parseInt(mixed[1]) + parseFloat(mixed[2]) * 60) / 2;
+  const hrRange = str.match(/(\d+\.?\d*)[–\-](\d+\.?\d*)\s*小時/);
+  if (hrRange) return ((parseFloat(hrRange[1]) + parseFloat(hrRange[2])) / 2) * 60;
+  const hrSingle = str.match(/(\d+\.?\d*)\s*小時/);
+  if (hrSingle) return parseFloat(hrSingle[1]) * 60;
+  const minRange = str.match(/(\d+)[–\-](\d+)\s*分鐘/);
+  if (minRange) return (parseInt(minRange[1]) + parseInt(minRange[2])) / 2;
+  const minSingle = str.match(/(\d+)\s*分鐘/);
+  if (minSingle) return parseInt(minSingle[1]);
+  return 60;
+}
+
+function fmt(min) {
+  const h = Math.floor(min / 60), m = min % 60;
+  return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
+}
+
+function slotOf(a) {
+  const evening = /日落|夕陽|碼頭|漁人|港口/.test(a.name);
+  if (evening) return 4;
+  if (a.category === "咖啡廳") return 3;
+  if (a.category === "美食")   return 2;
+  return 1; // 景點、古蹟、廟宇、其他 → 上午
+}
+
+function optimizeItinerary(data) {
+  const TRAVEL = 15, START = 9 * 60 + 10; // 09:10（10 分鐘走出捷運站）
+  const sorted = [...data].sort((a, b) => slotOf(a) - slotOf(b) || b.rating - a.rating);
+  let t = START;
+  return sorted.map(a => {
+    const start = fmt(t);
+    const dur = Math.round(parseDuration(a.duration));
+    t += dur + TRAVEL;
+    return { ...a, startTime: start, durMin: dur, endTime: fmt(t - TRAVEL) };
+  }).concat([{ _return: true, startTime: fmt(t) }]);
+}
+
+function renderItinerary(data) {
+  if (data.length === 0) {
+    document.getElementById("itinerary").innerHTML =
+      '<p style="color:#aaa;padding:16px;">尚無景點，請先新增</p>';
+    document.getElementById("itinerary-note").textContent = "";
+    return;
+  }
+  const steps = optimizeItinerary(data);
+  const returnStep = steps.pop();
+  document.getElementById("itinerary").innerHTML =
+    `<div class="step">
+       <span class="time">09:00</span>
+       <span class="step-name">捷運淡水站出發</span>
+     </div>` +
+    steps.map(s => `
+      <div class="step">
+        <span class="time">${s.startTime}</span>
+        <span class="step-name">${s.name}</span>
+        <span class="dur-badge">${s.duration || "~1 小時"}</span>
+      </div>`).join("") +
+    `<div class="step">
+       <span class="time">${returnStep.startTime}</span>
+       <span class="step-name step-return">搭捷運返程</span>
+     </div>`;
+  document.getElementById("itinerary-note").textContent =
+    `（${data.length} 個景點，預計 ${returnStep.startTime} 返程）`;
+}
+
+function load() {
+  const raw = localStorage.getItem(KEY);
+  return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULTS));
+}
+
+function save(data) { localStorage.setItem(KEY, JSON.stringify(data)); }
+
+function stars(r) {
+  return "★".repeat(Math.floor(r)) + (r % 1 >= 0.5 ? "½" : "") + " " + r;
+}
+
+function colorFor(cat) { return CATEGORY_COLOR[cat] || "#607D8B"; }
+
+function render() {
+  const data = load();
+  renderItinerary(data);
+  const container = document.getElementById("cards");
+  const filtersEl = document.getElementById("filters");
+
+  const cats = ["all", ...new Set(data.map(a => a.category))];
+  filtersEl.innerHTML = cats.map(c =>
+    `<button class="filter-btn ${activeFilter === c ? "active" : ""}" onclick="setFilter('${c}', this)">
+      ${c === "all" ? "全部" : c}
+    </button>`
+  ).join("");
+
+  const filtered = data
+    .filter(a => activeFilter === "all" || a.category === activeFilter)
+    .sort((a, b) => b.rating - a.rating);
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<p class="empty-msg">目前沒有符合條件的景點</p>';
+  } else {
+    container.innerHTML = filtered.map(a => `
+      <div class="card">
+        <div class="card-header" style="background:${colorFor(a.category)}">
+          <span class="category-tag">${a.category}</span>
+          <span class="rating-tag">${stars(a.rating)}</span>
+        </div>
+        <div class="card-body">
+          <h3>${a.name}</h3>
+          ${a.duration  ? `<div class="info-row"><span class="icon">⏱</span><span>${a.duration}</span></div>` : ""}
+          ${a.price     ? `<div class="info-row"><span class="icon">💰</span><span>${a.price}</span></div>` : ""}
+          ${a.transport ? `<div class="info-row"><span class="icon">🚌</span><span>${a.transport}</span></div>` : ""}
+          ${a.tips      ? `<div class="tips-box">💡 ${a.tips}</div>` : ""}
+        </div>
+        <div class="card-actions">
+          <button class="btn-edit" onclick="openModal(${a.id})">編輯</button>
+          <button class="btn-del"  onclick="deleteAttraction(${a.id})">刪除</button>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  document.getElementById("subtitle").textContent = `共 ${data.length} 個景點`;
+}
+
+function setFilter(cat) { activeFilter = cat; render(); }
+
+// ── CRUD ──────────────────────────────────────────────────────────────────────
+function openModal(id) {
+  editingId = id || null;
+  const data = load();
+  document.getElementById("modal-title").textContent = id ? "編輯景點" : "新增景點";
+  if (id) {
+    const a = data.find(x => x.id === id);
+    document.getElementById("f-name").value      = a.name;
+    document.getElementById("f-category").value  = a.category;
+    document.getElementById("f-rating").value    = a.rating;
+    document.getElementById("f-duration").value  = a.duration || "";
+    document.getElementById("f-price").value     = a.price || "";
+    document.getElementById("f-transport").value = a.transport || "";
+    document.getElementById("f-tips").value      = a.tips || "";
+  } else {
+    ["f-name","f-rating","f-duration","f-price","f-transport","f-tips"]
+      .forEach(fid => document.getElementById(fid).value = "");
+    document.getElementById("f-category").value = "景點";
+  }
+  document.getElementById("overlay").classList.add("open");
+}
+
+function closeModal() {
+  document.getElementById("overlay").classList.remove("open");
+  editingId = null;
+}
+
+function closeOnBg(e) {
+  if (e.target === document.getElementById("overlay")) closeModal();
+}
+
+function saveAttraction() {
+  const name   = document.getElementById("f-name").value.trim();
+  const rating = parseFloat(document.getElementById("f-rating").value);
+  if (!name) { alert("請填寫景點名稱"); return; }
+  if (isNaN(rating) || rating < 1 || rating > 5) { alert("評分請填 1.0–5.0"); return; }
+
+  const entry = {
+    name,
+    category:  document.getElementById("f-category").value,
+    rating:    Math.round(rating * 10) / 10,
+    duration:  document.getElementById("f-duration").value.trim(),
+    price:     document.getElementById("f-price").value.trim(),
+    transport: document.getElementById("f-transport").value.trim(),
+    tips:      document.getElementById("f-tips").value.trim(),
+  };
+
+  const data = load();
+  if (editingId) {
+    const i = data.findIndex(x => x.id === editingId);
+    data[i] = { ...data[i], ...entry };
+  } else {
+    entry.id = Date.now();
+    data.push(entry);
+  }
+  save(data);
+  closeModal();
+  render();
+}
+
+function deleteAttraction(id) {
+  const data = load();
+  const name = data.find(x => x.id === id)?.name;
+  if (!confirm(`確定刪除「${name}」？`)) return;
+  save(data.filter(x => x.id !== id));
+  render();
+}
+
+function resetData() {
+  if (!confirm("還原所有預設景點？目前的新增與修改將會消失。")) return;
+  localStorage.removeItem(KEY);
+  activeFilter = "all";
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
