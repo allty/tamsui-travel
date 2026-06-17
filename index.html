@@ -195,8 +195,16 @@ const DEFAULTS = [
 ];
 
 const KEY = "tamsui_attractions";
+const VERSION_KEY = "tamsui_version";
+const DATA_VERSION = "2";   // 每次更新 DEFAULTS 就加 1
 let editingId = null;
 let activeFilter = "all";
+
+// 版本不符時自動清除舊快取，載入新預設值
+if (localStorage.getItem(VERSION_KEY) !== DATA_VERSION) {
+  localStorage.removeItem(KEY);
+  localStorage.setItem(VERSION_KEY, DATA_VERSION);
+}
 
 // ── 行程最佳化 ────────────────────────────────────────────────────────────────
 function parseDuration(str) {
