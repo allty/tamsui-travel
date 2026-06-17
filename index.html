@@ -16,13 +16,18 @@
   h2 { font-size: 1.2rem; margin-bottom: 14px; color: #1a73e8; border-left: 4px solid #1a73e8; padding-left: 10px; }
 
   /* 行程 */
-  .itinerary { display: flex; flex-direction: column; gap: 6px; }
-  .step { display: flex; align-items: center; gap: 12px; background: white; border-radius: 8px; padding: 10px 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); position: relative; }
-  .step::before { content: ""; position: absolute; left: 52px; top: 100%; width: 2px; height: 6px; background: #cdd7e8; }
-  .step:last-child::before { display: none; }
-  .time { font-weight: bold; color: #1a73e8; min-width: 52px; font-size: 0.9rem; flex-shrink: 0; }
-  .step-name { flex: 1; font-size: 0.95rem; }
-  .dur-badge { font-size: 0.75rem; color: #888; background: #f0f4f8; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .itinerary { display: flex; flex-direction: column; gap: 10px; }
+  .slot-block { border-radius: 10px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.09); }
+  .slot-header { display: flex; justify-content: space-between; align-items: center; padding: 9px 16px; color: white; }
+  .slot-label { font-weight: bold; font-size: 0.92rem; }
+  .slot-range { font-size: 0.8rem; opacity: 0.88; }
+  .step { display: flex; align-items: center; gap: 12px; background: white; padding: 10px 16px; border-bottom: 1px solid #f0f4f8; }
+  .slot-block .step:last-child { border-bottom: none; }
+  .time { font-weight: bold; color: #1a73e8; min-width: 52px; font-size: 0.88rem; flex-shrink: 0; }
+  .step-name { flex: 1; font-size: 0.93rem; }
+  .dur-badge { font-size: 0.74rem; color: #999; background: #f0f4f8; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .travel-gap { background: #fafbfc; padding: 3px 16px 3px 80px; font-size: 0.73rem; color: #bbb; border-bottom: 1px solid #f0f4f8; }
+  .return-step { background: #f0f4f8 !important; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
   .step-return { color: #888; font-style: italic; }
 
   /* 工具列 */
@@ -207,6 +212,16 @@ if (localStorage.getItem(VERSION_KEY) !== DATA_VERSION) {
 }
 
 // ── 行程最佳化 ────────────────────────────────────────────────────────────────
+const SLOTS = [
+  { id: 0, label: "早餐",           color: "#FF9800", start: 6*60    },
+  { id: 1, label: "上午景點",       color: "#2196F3", start: 9*60+10 },
+  { id: 2, label: "午餐",           color: "#F44336", start: 12*60   },
+  { id: 3, label: "下午甜點＆咖啡", color: "#E91E63", start: 14*60   },
+  { id: 4, label: "傍晚",           color: "#FF5722", start: 17*60   },
+  { id: 5, label: "宵夜",           color: "#7B1FA2", start: 20*60   },
+];
+const TRAVEL = 15;
+
 function parseDuration(str) {
   if (!str) return 60;
   const mixed = str.match(/(\d+)\s*分鐘[–\-](\d+\.?\d*)\s*小時/);
@@ -227,53 +242,93 @@ function fmt(min) {
   return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
 }
 
+function parseOpenTime(hoursStr) {
+  if (!hoursStr) return null;
+  const m = hoursStr.match(/^(\d+):(\d+)/);
+  return m ? parseInt(m[1]) * 60 + parseInt(m[2]) : null;
+}
+
 function slotOf(a) {
-  const evening = /日落|夕陽|碼頭|漁人|港口/.test(a.name);
-  if (evening) return 5;
-  if (a.category === "咖啡廳") return 4;
-  if (a.category === "甜點")   return 3;
-  if (a.category === "美食")   return 2;
-  return 1; // 景點、古蹟、廟宇 → 上午
+  if (/冰品|宵夜/.test(a.name)) return 5;
+  if (/日落|夕陽|碼頭|漁人|港口/.test(a.name)) return 4;
+  if (a.category === "咖啡廳" || a.category === "甜點") return 3;
+  if (a.category === "美食") {
+    const open = parseOpenTime(a.hours);
+    return (open !== null && open < 9 * 60) ? 0 : 2;
+  }
+  return 1;
 }
 
 function optimizeItinerary(data) {
-  const TRAVEL = 15, START = 9 * 60 + 10; // 09:10（10 分鐘走出捷運站）
-  const sorted = [...data].sort((a, b) => slotOf(a) - slotOf(b) || b.rating - a.rating);
-  let t = START;
-  return sorted.map(a => {
-    const start = fmt(t);
-    const dur = Math.round(parseDuration(a.duration));
-    t += dur + TRAVEL;
-    return { ...a, startTime: start, durMin: dur, endTime: fmt(t - TRAVEL) };
-  }).concat([{ _return: true, startTime: fmt(t) }]);
+  const groups = {};
+  SLOTS.forEach(s => { groups[s.id] = []; });
+  data.forEach(a => { groups[slotOf(a)].push(a); });
+  SLOTS.forEach(s => groups[s.id].sort((a, b) => b.rating - a.rating));
+
+  const result = [];
+  SLOTS.forEach(slot => {
+    const items = groups[slot.id];
+    if (!items.length) return;
+    let t = slot.start;
+    items.forEach((a, i) => {
+      const dur = Math.round(parseDuration(a.duration));
+      result.push({ ...a, startMin: t, startTime: fmt(t), endMin: t + dur, endTime: fmt(t + dur), slot: slot.id, slotLabel: slot.label, slotColor: slot.color });
+      t += dur + TRAVEL;
+    });
+  });
+  return result;
 }
 
 function renderItinerary(data) {
   if (data.length === 0) {
-    document.getElementById("itinerary").innerHTML =
-      '<p style="color:#aaa;padding:16px;">尚無景點，請先新增</p>';
+    document.getElementById("itinerary").innerHTML = '<p style="color:#aaa;padding:16px;">尚無景點，請先新增</p>';
     document.getElementById("itinerary-note").textContent = "";
     return;
   }
+
   const steps = optimizeItinerary(data);
-  const returnStep = steps.pop();
-  document.getElementById("itinerary").innerHTML =
-    `<div class="step">
-       <span class="time">09:00</span>
-       <span class="step-name">捷運淡水站出發</span>
-     </div>` +
-    steps.map(s => `
-      <div class="step">
-        <span class="time">${s.startTime}</span>
-        <span class="step-name">${s.name}</span>
-        <span class="dur-badge">${s.duration || "~1 小時"}</span>
-      </div>`).join("") +
-    `<div class="step">
-       <span class="time">${returnStep.startTime}</span>
-       <span class="step-name step-return">搭捷運返程</span>
-     </div>`;
-  document.getElementById("itinerary-note").textContent =
-    `（${data.length} 個景點，預計 ${returnStep.startTime} 返程）`;
+
+  // 依時段分組
+  const groups = [];
+  steps.forEach(s => {
+    const last = groups[groups.length - 1];
+    if (last && last.slot === s.slot) { last.items.push(s); }
+    else { groups.push({ slot: s.slot, label: s.slotLabel, color: s.slotColor, items: [s] }); }
+  });
+
+  let html = `<div class="step" style="border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+    <span class="time">09:00</span><span class="step-name">捷運淡水站出發</span>
+  </div>`;
+
+  groups.forEach(g => {
+    const rangeStart = g.items[0].startTime;
+    const rangeEnd   = g.items[g.items.length - 1].endTime;
+    html += `<div class="slot-block">
+      <div class="slot-header" style="background:${g.color}">
+        <span class="slot-label">${g.label}</span>
+        <span class="slot-range">${rangeStart} – ${rangeEnd}</span>
+      </div>`;
+    g.items.forEach((a, i) => {
+      html += `<div class="step">
+        <span class="time">${a.startTime}</span>
+        <span class="step-name">${a.name}</span>
+        <span class="dur-badge">${a.duration || "~1 小時"}</span>
+      </div>`;
+      if (i < g.items.length - 1)
+        html += `<div class="travel-gap">↓ 移動約 15 分鐘</div>`;
+    });
+    html += `</div>`;
+  });
+
+  const lastStep = steps[steps.length - 1];
+  const returnTime = fmt(lastStep.endMin + TRAVEL);
+  html += `<div class="step return-step">
+    <span class="time">${returnTime}</span>
+    <span class="step-name step-return">搭捷運返程</span>
+  </div>`;
+
+  document.getElementById("itinerary").innerHTML = html;
+  document.getElementById("itinerary-note").textContent = `（${data.length} 個景點，預計 ${returnTime} 返程）`;
 }
 
 function load() {
