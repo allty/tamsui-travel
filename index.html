@@ -29,6 +29,24 @@
   .travel-gap { background: #fafbfc; padding: 3px 16px 3px 80px; font-size: 0.73rem; color: #bbb; border-bottom: 1px solid #f0f4f8; }
   .return-step { background: #f0f4f8 !important; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
   .step-return { color: #888; font-style: italic; }
+  /* 行程工具列 */
+  .itin-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+  .itin-toolbar label { font-size: 0.85rem; color: #555; display: flex; align-items: center; gap: 6px; }
+  .itin-toolbar input[type=time] { width: auto; padding: 5px 8px; font-size: 0.85rem; }
+  .btn-auto { padding: 7px 14px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+  .btn-auto:hover { background: #1557b0; }
+  .btn-custom { padding: 7px 14px; background: white; color: #34a853; border: 2px solid #34a853; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+  .btn-custom:hover { background: #e8f5e9; }
+  /* 行程步驟控制 */
+  .step-controls { display: flex; gap: 3px; flex-shrink: 0; }
+  .btn-move { width: 26px; height: 26px; border: 1px solid #ddd; background: white; border-radius: 5px; cursor: pointer; font-size: 0.8rem; color: #666; }
+  .btn-move:hover { background: #f0f4f8; }
+  .btn-remove-step { width: 26px; height: 26px; border: 1px solid #fcc; background: white; border-radius: 5px; cursor: pointer; font-size: 0.8rem; color: #e53935; }
+  .btn-remove-step:hover { background: #fce8e6; }
+  .btn-add-itin { flex: 1; padding: 6px; border: 1px solid #34a853; color: #34a853; background: white; border-radius: 6px; cursor: pointer; font-size: 0.82rem; }
+  .btn-add-itin:hover { background: #e8f5e9; }
+  .step.in-itin { background: #f9fffe; }
+  .custom-step-name { color: #555; font-style: italic; }
 
   /* 工具列 */
   .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; }
@@ -92,6 +110,11 @@
 
 <section>
   <h2>建議行程 <span id="itinerary-note" style="font-size:0.78rem;color:#888;font-weight:normal;margin-left:8px;"></span></h2>
+  <div class="itin-toolbar">
+    <label>出發時間 <input type="time" id="start-time" value="09:00" onchange="renderItinerary(load())"></label>
+    <button class="btn-auto" onclick="autoArrange()">自動排列</button>
+    <button class="btn-custom" onclick="openCustomStep()">+ 新增自訂項目</button>
+  </div>
   <div class="itinerary" id="itinerary"></div>
 </section>
 
@@ -169,6 +192,31 @@
   </div>
 </div>
 
+<!-- 新增自訂行程項目 Modal -->
+<div class="overlay" id="overlay-custom" onclick="if(event.target===this)closeCustomStep()">
+  <div class="modal">
+    <h3>新增自訂行程項目</h3>
+    <div class="form-group">
+      <label>項目名稱 *（例：午休、移動至漁人碼頭）</label>
+      <input id="cs-name" type="text" placeholder="例：搭公車前往紅毛城">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>所需時間</label>
+        <input id="cs-duration" type="text" placeholder="例：30 分鐘">
+      </div>
+      <div class="form-group">
+        <label>移動時間（分鐘）</label>
+        <input id="cs-travel" type="number" value="15" min="0" max="120">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeCustomStep()">取消</button>
+      <button class="btn-save" onclick="saveCustomStep()">加入行程</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const CATEGORY_COLOR = {
   "景點": "#2196F3", "古蹟": "#795548", "美食": "#FF5722",
@@ -200,15 +248,93 @@ const DEFAULTS = [
 ];
 
 const KEY = "tamsui_attractions";
+const ITIN_KEY = "tamsui_itinerary";
 const VERSION_KEY = "tamsui_version";
-const DATA_VERSION = "2";   // 每次更新 DEFAULTS 就加 1
+const DATA_VERSION = "3";
 let editingId = null;
 let activeFilter = "all";
 
-// 版本不符時自動清除舊快取，載入新預設值
 if (localStorage.getItem(VERSION_KEY) !== DATA_VERSION) {
   localStorage.removeItem(KEY);
+  localStorage.removeItem(ITIN_KEY);
   localStorage.setItem(VERSION_KEY, DATA_VERSION);
+}
+
+// ── 行程 localStorage ─────────────────────────────────────────────────────────
+function loadItin() {
+  const raw = localStorage.getItem(ITIN_KEY);
+  return raw ? JSON.parse(raw) : null;
+}
+function saveItin(items) { localStorage.setItem(ITIN_KEY, JSON.stringify(items)); }
+
+function getStartMin() {
+  const el = document.getElementById("start-time");
+  if (!el || !el.value) return 9 * 60;
+  const [h, m] = el.value.split(":").map(Number);
+  return h * 60 + m;
+}
+
+// 將 attractions 自動排列成 itinerary 格式
+function buildAutoItin(data) {
+  const steps = optimizeItinerary(data);
+  return steps.map(s => ({
+    iid: s.id || Date.now() + Math.random(),
+    name: s.name,
+    duration: s.duration || "1 小時",
+    travelMin: TRAVEL,
+    custom: false,
+    attractionId: s.id,
+  }));
+}
+
+function autoArrange() {
+  const data = load();
+  if (!data.length) return;
+  saveItin(buildAutoItin(data));
+  renderItinerary(data);
+}
+
+function addToItin(attractionId) {
+  const data = load();
+  const a = data.find(x => x.id === attractionId);
+  if (!a) return;
+  const itin = loadItin() || buildAutoItin(data);
+  if (itin.find(x => x.attractionId === attractionId)) {
+    alert(`「${a.name}」已在行程中`); return;
+  }
+  itin.push({ iid: Date.now(), name: a.name, duration: a.duration || "1 小時", travelMin: TRAVEL, custom: false, attractionId });
+  saveItin(itin);
+  renderItinerary(data);
+}
+
+function removeStep(iid) {
+  const itin = loadItin() || [];
+  saveItin(itin.filter(x => x.iid !== iid));
+  renderItinerary(load());
+}
+
+function moveStep(iid, dir) {
+  const itin = loadItin() || [];
+  const i = itin.findIndex(x => x.iid === iid);
+  if (i + dir < 0 || i + dir >= itin.length) return;
+  [itin[i], itin[i + dir]] = [itin[i + dir], itin[i]];
+  saveItin(itin);
+  renderItinerary(load());
+}
+
+function openCustomStep() { document.getElementById("overlay-custom").classList.add("open"); }
+function closeCustomStep() { document.getElementById("overlay-custom").classList.remove("open"); }
+
+function saveCustomStep() {
+  const name = document.getElementById("cs-name").value.trim();
+  if (!name) { alert("請填寫項目名稱"); return; }
+  const duration = document.getElementById("cs-duration").value.trim() || "30 分鐘";
+  const travelMin = parseInt(document.getElementById("cs-travel").value) || 15;
+  const itin = loadItin() || buildAutoItin(load());
+  itin.push({ iid: Date.now(), name, duration, travelMin, custom: true, attractionId: null });
+  saveItin(itin);
+  closeCustomStep();
+  renderItinerary(load());
 }
 
 // ── 行程最佳化 ────────────────────────────────────────────────────────────────
@@ -280,55 +406,64 @@ function optimizeItinerary(data) {
 }
 
 function renderItinerary(data) {
+  const el = document.getElementById("itinerary");
   if (data.length === 0) {
-    document.getElementById("itinerary").innerHTML = '<p style="color:#aaa;padding:16px;">尚無景點，請先新增</p>';
+    el.innerHTML = '<p style="color:#aaa;padding:16px;">尚無景點，請先新增</p>';
     document.getElementById("itinerary-note").textContent = "";
     return;
   }
 
-  const steps = optimizeItinerary(data);
+  // 取得行程（若無則自動產生）
+  let itin = loadItin();
+  if (!itin) { itin = buildAutoItin(data); saveItin(itin); }
 
-  // 依時段分組
-  const groups = [];
-  steps.forEach(s => {
-    const last = groups[groups.length - 1];
-    if (last && last.slot === s.slot) { last.items.push(s); }
-    else { groups.push({ slot: s.slot, label: s.slotLabel, color: s.slotColor, items: [s] }); }
+  let t = getStartMin();
+  const inItinIds = new Set(itin.map(x => x.attractionId).filter(Boolean));
+
+  // 更新卡片按鈕狀態
+  document.querySelectorAll(".btn-add-itin").forEach(btn => {
+    const aid = parseInt(btn.dataset.id);
+    btn.textContent = inItinIds.has(aid) ? "已加入" : "加入行程";
+    btn.disabled = inItinIds.has(aid);
+    btn.style.opacity = inItinIds.has(aid) ? "0.5" : "1";
   });
 
+  const startTime = fmt(t);
   let html = `<div class="step" style="border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
-    <span class="time">09:00</span><span class="step-name">捷運淡水站出發</span>
+    <span class="time">${startTime}</span><span class="step-name">捷運淡水站出發</span>
   </div>`;
+  t += 10; // 10 分鐘走出捷運站
 
-  groups.forEach(g => {
-    const rangeStart = g.items[0].startTime;
-    const rangeEnd   = g.items[g.items.length - 1].endTime;
-    html += `<div class="slot-block">
-      <div class="slot-header" style="background:${g.color}">
-        <span class="slot-label">${g.label}</span>
-        <span class="slot-range">${rangeStart} – ${rangeEnd}</span>
-      </div>`;
-    g.items.forEach((a, i) => {
-      html += `<div class="step">
-        <span class="time">${a.startTime}</span>
-        <span class="step-name">${a.name}</span>
-        <span class="dur-badge">${a.duration || "~1 小時"}</span>
-      </div>`;
-      if (i < g.items.length - 1)
-        html += `<div class="travel-gap">↓ 移動約 15 分鐘</div>`;
-    });
-    html += `</div>`;
+  itin.forEach((item, idx) => {
+    const dur = Math.round(parseDuration(item.duration));
+    const startT = fmt(t);
+    const endT   = fmt(t + dur);
+    const isFirst = idx === 0;
+    const isLast  = idx === itin.length - 1;
+
+    html += `<div class="travel-gap" style="padding-left:16px;">↓ 移動約 ${item.travelMin || 15} 分鐘</div>
+    <div class="step in-itin" style="border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+      <div class="step-controls">
+        <button class="btn-move" onclick="moveStep(${item.iid},-1)" ${isFirst?"disabled":""}>▲</button>
+        <button class="btn-move" onclick="moveStep(${item.iid},1)"  ${isLast?"disabled":""}>▼</button>
+      </div>
+      <span class="time">${startT}</span>
+      <span class="step-name ${item.custom ? "custom-step-name" : ""}">${item.name}</span>
+      <span class="dur-badge">${item.duration}</span>
+      <button class="btn-remove-step" onclick="removeStep(${item.iid})" title="移除">✕</button>
+    </div>`;
+    t += dur + (item.travelMin ?? TRAVEL);
   });
 
-  const lastStep = steps[steps.length - 1];
-  const returnTime = fmt(lastStep.endMin + TRAVEL);
-  html += `<div class="step return-step">
+  const returnTime = fmt(t);
+  html += `<div class="step return-step" style="margin-top:6px;">
     <span class="time">${returnTime}</span>
     <span class="step-name step-return">搭捷運返程</span>
   </div>`;
 
-  document.getElementById("itinerary").innerHTML = html;
-  document.getElementById("itinerary-note").textContent = `（${data.length} 個景點，預計 ${returnTime} 返程）`;
+  el.innerHTML = html;
+  document.getElementById("itinerary-note").textContent =
+    `（${itin.length} 個行程項目，預計 ${returnTime} 返程）`;
 }
 
 function load() {
@@ -379,6 +514,7 @@ function render() {
           ${a.tips      ? `<div class="tips-box">💡 ${a.tips}</div>` : ""}
         </div>
         <div class="card-actions">
+          <button class="btn-add-itin" data-id="${a.id}" onclick="addToItin(${a.id})">加入行程</button>
           <button class="btn-edit" onclick="openModal(${a.id})">編輯</button>
           <button class="btn-del"  onclick="deleteAttraction(${a.id})">刪除</button>
         </div>
