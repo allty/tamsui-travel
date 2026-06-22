@@ -51,10 +51,6 @@
   .dur-wrap { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; color: #666; white-space: nowrap; }
   .dur-wrap input { width: 52px; padding: 3px 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.82rem; text-align: center; }
   .dur-wrap input:focus { border-color: #1a73e8; outline: none; }
-  /* 移動時間 inline 編輯 */
-  .travel-gap-edit { background: #fafbfc; padding: 4px 16px 4px 16px; font-size: 0.75rem; color: #aaa; border-bottom: 1px solid #f0f4f8; display: flex; align-items: center; gap: 6px; }
-  .travel-gap-edit input { width: 42px; padding: 2px 5px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.75rem; text-align: center; }
-  .travel-gap-edit input:focus { border-color: #1a73e8; outline: none; }
   /* 替換面板 */
   .replace-panel { background: #fff8e1; border: 1px solid #ffd54f; border-radius: 6px; padding: 6px 10px; margin: 2px 0; display: none; }
   .replace-panel select { width: 100%; padding: 5px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; }
@@ -73,6 +69,14 @@
   #budget-table .total-row td { font-weight: bold; background: #e8f0fe; color: #1a73e8; }
   #budget-table .transport-row td:last-child input { width: 70px; padding: 3px 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.88rem; text-align: right; }
   #budget-table .transport-row td:last-child input:focus { border-color: #1a73e8; outline: none; }
+  /* 交通模式選擇 */
+  .travel-gap-edit { background: #fafbfc; padding: 4px 14px; font-size: 0.75rem; color: #aaa; border-bottom: 1px solid #f0f4f8; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .travel-gap-edit input { width: 42px; padding: 2px 5px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.75rem; text-align: center; }
+  .travel-gap-edit input:focus { border-color: #1a73e8; outline: none; }
+  .mode-sel { padding: 2px 6px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.78rem; cursor: pointer; background: white; color: #555; }
+  .mode-sel:focus { outline: none; border-color: #1a73e8; }
+  .travel-dist { font-size: 0.7rem; color: #ccc; margin-left: 2px; }
+  .travel-fetching { font-size: 0.7rem; color: #aaa; font-style: italic; }
 
   /* 工具列 */
   .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; }
@@ -270,6 +274,78 @@ const KEY = "tamsui_attractions";
 const ITIN_KEY = "tamsui_itinerary";
 const VERSION_KEY = "tamsui_version";
 const DATA_VERSION = "5";
+
+// 各景點近似座標 [lat, lng]（用於 OSRM 路線查詢）
+const COORDS = {
+  1:  [25.16899, 121.43750], // 淡水日落碼頭
+  2:  [25.17565, 121.43162], // 紅毛城
+  3:  [25.17963, 121.42052], // 漁人碼頭
+  4:  [25.17630, 121.43020], // 真理大學校園
+  5:  [25.17002, 121.43870], // 淡水老街
+  6:  [25.19170, 121.40462], // 淡水天元宮
+  7:  [25.16981, 121.43849], // 得忌利士洋行
+  8:  [25.17748, 121.42800], // 滬尾砲台
+  9:  [25.17062, 121.43893], // 阿給原創老店
+  10: [25.17032, 121.43882], // 丹頂豆
+  11: [25.17048, 121.43882], // 4F小飯館
+  12: [25.17048, 121.43928], // 黑殿飯店
+  13: [25.17118, 121.43698], // 讓靜甜點工作室
+  14: [25.16997, 121.43848], // 貳樓餐廳
+  15: [25.16999, 121.43891], // 緣味古早味現烤蛋糕
+  16: [25.17010, 121.43882], // 文森食堂
+  17: [25.17140, 121.43670], // 天天咬吐司
+  18: [25.17022, 121.43893], // 阿忠花生捲冰淇淋
+  19: [25.16989, 121.43860], // 朝日夫婦冰品
+  20: [25.17003, 121.43882], // 麻吉奶奶餅奶麻糬
+  21: [25.17010, 121.43873], // 半坪屋手工糯米腸
+};
+
+// 使用 OSRM 免費公開 API 查詢步行/開車時間
+const travelCache = {};
+
+async function fetchTravelTime(fromId, toId, mode) {
+  const key = `${mode}-${fromId}-${toId}`;
+  if (travelCache[key]) return travelCache[key];
+  const from = COORDS[fromId], to = COORDS[toId];
+  if (!from || !to) return null;
+  const profile = mode === "car" ? "driving" : "foot";
+  const url = `https://router.project-osrm.org/route/v1/${profile}/${from[1]},${from[0]};${to[1]},${to[0]}?overview=false`;
+  try {
+    const r = await fetch(url);
+    const d = await r.json();
+    if (d.code === "Ok" && d.routes && d.routes.length) {
+      const mins = Math.max(1, Math.ceil(d.routes[0].duration / 60));
+      const km   = (d.routes[0].distance / 1000).toFixed(1);
+      travelCache[key] = { mins, km };
+      return travelCache[key];
+    }
+  } catch (e) {}
+  return null;
+}
+
+async function updateStepMode(iid, mode) {
+  const itin = loadItin() || [];
+  const idx = itin.findIndex(x => x.iid === iid);
+  if (idx < 0) return;
+  itin[idx].travelMode = mode;
+  saveItin(itin);
+  renderItinerary(load()); // 立即更新模式圖示（保留舊時間）
+  const cur = itin[idx], next = itin[idx + 1];
+  if (cur.attractionId && next && next.attractionId) {
+    const result = await fetchTravelTime(cur.attractionId, next.attractionId, mode);
+    if (result) {
+      const itin2 = loadItin() || [];
+      const item2 = itin2.find(x => x.iid === iid);
+      if (item2 && item2.travelMode === mode) {
+        item2.travelMin = result.mins;
+        item2.travelKm  = result.km;
+        saveItin(itin2);
+        renderItinerary(load());
+      }
+    }
+  }
+}
+
 let editingId = null;
 let activeFilter = "all";
 
@@ -302,6 +378,7 @@ function buildAutoItin(data) {
     duration: s.duration || "1 小時",
     durMin: Math.round(parseDuration(s.duration || "1 小時")),
     travelMin: TRAVEL,
+    travelMode: "walk",
     budget: parsePrice(s.price),
     custom: false,
     attractionId: s.id,
@@ -407,7 +484,7 @@ function addToItin(attractionId) {
   if (itin.find(x => x.attractionId === attractionId)) {
     alert(`「${a.name}」已在行程中`); return;
   }
-  itin.push({ iid: Date.now(), name: a.name, duration: a.duration || "1 小時", durMin: Math.round(parseDuration(a.duration || "1 小時")), travelMin: TRAVEL, budget: parsePrice(a.price), custom: false, attractionId });
+  itin.push({ iid: Date.now(), name: a.name, duration: a.duration || "1 小時", durMin: Math.round(parseDuration(a.duration || "1 小時")), travelMin: TRAVEL, travelMode: "walk", budget: parsePrice(a.price), custom: false, attractionId });
   saveItin(itin);
   renderItinerary(data);
 }
@@ -521,9 +598,10 @@ function renderItinerary(data) {
   let itin = loadItin();
   if (!itin) { itin = buildAutoItin(data); saveItin(itin); }
 
-  // 確保每個 item 都有 durMin
+  // 確保每個 item 都有 durMin / travelMode（相容舊資料）
   itin.forEach(item => {
     if (!item.durMin) item.durMin = Math.round(parseDuration(item.duration || "1 小時"));
+    if (!item.travelMode) item.travelMode = "walk";
   });
 
   let t = getStartMin();
@@ -565,12 +643,17 @@ function renderItinerary(data) {
     const isFirst = idx === 0;
     const isLast  = idx === itin.length - 1;
 
+    const mode = item.travelMode || "walk";
     html += `
     <div class="travel-gap-edit">
-      ↓ 移動
-      <input type="number" value="${travel}" min="0" max="180"
+      <select class="mode-sel" onchange="updateStepMode(${item.iid}, this.value)" title="選擇交通方式">
+        <option value="walk" ${mode==="walk"?"selected":""}>🚶 步行</option>
+        <option value="car"  ${mode==="car" ?"selected":""}>🚗 汽車</option>
+      </select>
+      <input type="number" value="${travel}" min="0" max="360"
         onchange="updateStepTravel(${item.iid}, this.value)" title="移動時間（分鐘）">
       分鐘
+      ${item.travelKm ? `<span class="travel-dist">${item.travelKm} km</span>` : ""}
     </div>
     <div class="step in-itin" style="border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
       <div class="step-controls">
