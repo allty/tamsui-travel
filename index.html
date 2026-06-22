@@ -308,19 +308,35 @@ async function fetchTravelTime(fromId, toId, mode) {
   if (travelCache[key]) return travelCache[key];
   const from = COORDS[fromId], to = COORDS[toId];
   if (!from || !to) return null;
-  const profile = mode === "car" ? "driving" : "foot";
-  const url = `https://router.project-osrm.org/route/v1/${profile}/${from[1]},${from[0]};${to[1]},${to[0]}?overview=false`;
+  // OSRM 公開伺服器只有 driving 資料，但道路距離對步行同樣適用
+  const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=false`;
   try {
     const r = await fetch(url);
     const d = await r.json();
     if (d.code === "Ok" && d.routes && d.routes.length) {
-      const mins = Math.max(1, Math.ceil(d.routes[0].duration / 60));
-      const km   = (d.routes[0].distance / 1000).toFixed(1);
+      const distM = d.routes[0].distance;
+      const km    = (distM / 1000).toFixed(1);
+      // 汽車用 OSRM duration；步行 80 m/min（≈4.8 km/h）
+      const mins  = mode === "car"
+        ? Math.max(1, Math.ceil(d.routes[0].duration / 60))
+        : Math.max(1, Math.ceil(distM / 80));
       travelCache[key] = { mins, km };
       return travelCache[key];
     }
   } catch (e) {}
-  return null;
+  // 備援：Haversine 直線距離 × 1.3 道路修正係數
+  const R = 6371000;
+  const dLat = (to[0]-from[0]) * Math.PI/180;
+  const dLng = (to[1]-from[1]) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(from[0]*Math.PI/180)*Math.cos(to[0]*Math.PI/180)*Math.sin(dLng/2)**2;
+  const distM = R * 2 * Math.asin(Math.sqrt(a)) * 1.3;
+  const km    = (distM / 1000).toFixed(1);
+  const mins  = mode === "car"
+    ? Math.max(1, Math.ceil(distM / 300))   // 300 m/min = 18 km/h
+    : Math.max(1, Math.ceil(distM / 80));   // 80 m/min 步行
+  const result = { mins, km };
+  travelCache[key] = result;
+  return result;
 }
 
 async function updateStepMode(iid, mode) {
