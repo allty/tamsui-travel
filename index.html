@@ -5,141 +5,188 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>淡水一日遊計畫</title>
 <style>
+  /* ── Base ── */
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: "Microsoft JhengHei", sans-serif; background: #f0f4f8; color: #333; }
+  body { font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif; background: #FFF0F5; color: #5A2D4A; }
 
-  header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 36px 20px; text-align: center; }
-  header h1 { font-size: 2rem; margin-bottom: 6px; }
-  header p { opacity: 0.85; font-size: 0.9rem; }
+  /* ── Floating hearts ── */
+  .heart-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .fh { position: absolute; animation: floatUp linear infinite; opacity: 0; user-select: none; }
+  @keyframes floatUp {
+    0%  { transform: translateY(105vh) rotate(0deg);   opacity: 0; }
+    10% { opacity: 0.14; }
+    90% { opacity: 0.09; }
+    100%{ transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+  }
 
-  section { max-width: 1060px; margin: 28px auto; padding: 0 16px; }
-  h2 { font-size: 1.2rem; margin-bottom: 14px; color: #1a73e8; border-left: 4px solid #1a73e8; padding-left: 10px; }
+  /* ── Header ── */
+  header {
+    position: relative; z-index: 1;
+    background: linear-gradient(160deg, #FFB6C1 0%, #FF69B4 55%, #FF90B3 100%);
+    color: white; text-align: center; padding: 0 20px 32px;
+    box-shadow: 0 6px 24px rgba(255,105,180,.35);
+  }
+  .header-bunny-row { display: flex; justify-content: center; align-items: flex-end; gap: 16px; padding-top: 28px; margin-bottom: 14px; }
+  .bounce  { animation: bnc 2.2s ease-in-out infinite; }
+  .bounce2 { animation: bnc 2.2s ease-in-out infinite; animation-delay: .55s; }
+  @keyframes bnc { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  header h1 { font-size: 2rem; text-shadow: 2px 3px 0 rgba(180,40,100,.3); letter-spacing: 2px; margin-bottom: 6px; }
+  header p  { opacity: .88; font-size: .9rem; letter-spacing: 1px; }
+  .header-hearts { display: flex; justify-content: center; gap: 8px; margin-top: 12px; font-size: 1.3rem; animation: hp 1.8s ease-in-out infinite; }
+  @keyframes hp { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
 
-  /* 行程 */
-  .itinerary { display: flex; flex-direction: column; gap: 10px; }
-  .slot-block { border-radius: 10px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.09); }
+  /* ── Section ── */
+  section { max-width: 1060px; margin: 30px auto; padding: 0 16px; position: relative; z-index: 1; }
+  h2 {
+    font-size: 1.15rem; margin-bottom: 14px; padding: 8px 16px 8px 14px;
+    background: linear-gradient(90deg, #FFD6E7 0%, transparent 100%);
+    border-left: 4px solid #FF6B8A; border-radius: 0 20px 20px 0;
+    color: #E8447A; display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ── Itinerary ── */
+  .itinerary { display: flex; flex-direction: column; gap: 8px; }
+  .slot-block { border-radius: 14px; overflow: hidden; box-shadow: 0 4px 16px rgba(255,105,180,.13); }
   .slot-header { display: flex; justify-content: space-between; align-items: center; padding: 9px 16px; color: white; }
-  .slot-label { font-weight: bold; font-size: 0.92rem; }
-  .slot-range { font-size: 0.8rem; opacity: 0.88; }
-  .step { display: flex; align-items: center; gap: 12px; background: white; padding: 10px 16px; border-bottom: 1px solid #f0f4f8; }
+  .slot-label { font-weight: bold; font-size: .92rem; }
+  .slot-range  { font-size: .8rem; opacity: .88; }
+  .step { display: flex; align-items: center; gap: 12px; background: white; padding: 10px 16px; border-bottom: 1px solid #FFE4EF; }
   .slot-block .step:last-child { border-bottom: none; }
-  .time { font-weight: bold; color: #1a73e8; min-width: 52px; font-size: 0.88rem; flex-shrink: 0; }
-  .step-name { flex: 1; font-size: 0.93rem; }
-  .dur-badge { font-size: 0.74rem; color: #999; background: #f0f4f8; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
-  .travel-gap { background: #fafbfc; padding: 3px 16px 3px 80px; font-size: 0.73rem; color: #bbb; border-bottom: 1px solid #f0f4f8; }
-  .return-step { background: #f0f4f8 !important; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
-  .step-return { color: #888; font-style: italic; }
-  /* 行程工具列 */
-  .itin-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
-  .itin-toolbar label { font-size: 0.85rem; color: #555; display: flex; align-items: center; gap: 6px; }
-  .itin-toolbar input[type=time] { width: auto; padding: 5px 8px; font-size: 0.85rem; }
-  .btn-auto { padding: 7px 14px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
-  .btn-auto:hover { background: #1557b0; }
-  .btn-custom { padding: 7px 14px; background: white; color: #34a853; border: 2px solid #34a853; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
-  .btn-custom:hover { background: #e8f5e9; }
-  /* 行程步驟控制 */
-  .step-controls { display: flex; gap: 3px; flex-shrink: 0; }
-  .btn-move { width: 26px; height: 26px; border: 1px solid #ddd; background: white; border-radius: 5px; cursor: pointer; font-size: 0.8rem; color: #666; }
-  .btn-move:hover { background: #f0f4f8; }
-  .btn-remove-step { width: 26px; height: 26px; border: 1px solid #fcc; background: white; border-radius: 5px; cursor: pointer; font-size: 0.8rem; color: #e53935; }
-  .btn-remove-step:hover { background: #fce8e6; }
-  .btn-add-itin { flex: 1; padding: 6px; border: 1px solid #34a853; color: #34a853; background: white; border-radius: 6px; cursor: pointer; font-size: 0.82rem; }
-  .btn-add-itin:hover { background: #e8f5e9; }
-  .step.in-itin { background: #f9fffe; }
-  .custom-step-name { color: #555; font-style: italic; }
-  /* 停留時間 inline 輸入 */
-  .dur-wrap { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; color: #666; white-space: nowrap; }
-  .dur-wrap input { width: 52px; padding: 3px 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.82rem; text-align: center; }
-  .dur-wrap input:focus { border-color: #1a73e8; outline: none; }
-  /* 替換面板 */
-  .replace-panel { background: #fff8e1; border: 1px solid #ffd54f; border-radius: 6px; padding: 6px 10px; margin: 2px 0; display: none; }
-  .replace-panel select { width: 100%; padding: 5px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; }
-  .btn-replace { padding: 4px 10px; border: 1px solid #fb8c00; color: #fb8c00; background: white; border-radius: 6px; cursor: pointer; font-size: 0.78rem; white-space: nowrap; }
-  .btn-replace:hover { background: #fff3e0; }
-  /* 時間總計列 */
-  .time-summary { display: flex; flex-wrap: wrap; gap: 12px; background: white; border-radius: 10px; padding: 10px 16px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); font-size: 0.85rem; color: #555; }
-  .time-summary span { display: flex; align-items: center; gap: 4px; }
-  .time-summary strong { color: #1a73e8; }
-  /* 預算輸入 */
-  .budget-wrap { display: flex; align-items: center; gap: 3px; font-size: 0.8rem; color: #666; white-space: nowrap; }
-  .budget-wrap input { width: 64px; padding: 3px 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.82rem; text-align: right; }
-  .budget-wrap input:focus { border-color: #34a853; outline: none; }
-  /* 動態預算表 */
-  #budget-table td:last-child { text-align: right; }
-  #budget-table .total-row td { font-weight: bold; background: #e8f0fe; color: #1a73e8; }
-  #budget-table .transport-row td:last-child input { width: 70px; padding: 3px 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.88rem; text-align: right; }
-  #budget-table .transport-row td:last-child input:focus { border-color: #1a73e8; outline: none; }
-  /* 交通模式選擇 */
-  .travel-gap-edit { background: #fafbfc; padding: 4px 14px; font-size: 0.75rem; color: #aaa; border-bottom: 1px solid #f0f4f8; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .travel-gap-edit input { width: 42px; padding: 2px 5px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.75rem; text-align: center; }
-  .travel-gap-edit input:focus { border-color: #1a73e8; outline: none; }
-  .mode-sel { padding: 2px 6px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.78rem; cursor: pointer; background: white; color: #555; }
-  .mode-sel:focus { outline: none; border-color: #1a73e8; }
-  .travel-dist { font-size: 0.7rem; color: #ccc; margin-left: 2px; }
-  .travel-fetching { font-size: 0.7rem; color: #aaa; font-style: italic; }
+  .time { font-weight: bold; color: #FF6B8A; min-width: 52px; font-size: .88rem; flex-shrink: 0; }
+  .step-name { flex: 1; font-size: .93rem; color: #5A2D4A; }
+  .dur-badge { font-size: .74rem; color: #FFB6C1; background: #FFF0F5; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .travel-gap { background: #FFF8FB; padding: 3px 16px 3px 80px; font-size: .73rem; color: #FFCCD8; border-bottom: 1px solid #FFE4EF; }
+  .return-step { background: #FFF0F5 !important; border-radius: 10px; }
+  .step-return { color: #FFB6C1; font-style: italic; }
 
-  /* 工具列 */
+  /* ── Itin toolbar ── */
+  .itin-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+  .itin-toolbar label { font-size: .85rem; color: #8B4B6A; display: flex; align-items: center; gap: 6px; }
+  .itin-toolbar input[type=time] { width: auto; padding: 5px 8px; font-size: .85rem; border: 1.5px solid #FFB6C1; border-radius: 10px; color: #5A2D4A; }
+  .btn-auto { padding: 7px 18px; background: linear-gradient(135deg,#FF9BB5,#FF6B8A); color: white; border: none; border-radius: 20px; cursor: pointer; font-size: .85rem; box-shadow: 0 3px 10px rgba(255,105,180,.3); transition: transform .15s; }
+  .btn-auto:hover { transform: translateY(-2px); }
+  .btn-custom { padding: 7px 16px; background: white; color: #FF6B8A; border: 2px solid #FF9BB5; border-radius: 20px; cursor: pointer; font-size: .85rem; transition: all .15s; }
+  .btn-custom:hover { background: #FFF0F5; border-color: #FF6B8A; }
+
+  /* ── Step controls ── */
+  .step-controls { display: flex; gap: 3px; flex-shrink: 0; }
+  .btn-move { width: 26px; height: 26px; border: 1.5px solid #FFD6E7; background: white; border-radius: 8px; cursor: pointer; font-size: .8rem; color: #FF9BB5; transition: all .12s; }
+  .btn-move:hover { background: #FFF0F5; border-color: #FF9BB5; }
+  .btn-remove-step { width: 26px; height: 26px; border: 1.5px solid #FFD6E7; background: white; border-radius: 8px; cursor: pointer; font-size: .8rem; color: #FF9BB5; }
+  .btn-remove-step:hover { background: #FFF0F5; border-color: #FF6B8A; color: #FF6B8A; }
+  .btn-add-itin { flex: 1; padding: 6px; border: 1.5px solid #FF9BB5; color: #FF9BB5; background: white; border-radius: 10px; cursor: pointer; font-size: .82rem; transition: all .12s; }
+  .btn-add-itin:hover { background: #FFF0F5; border-color: #FF6B8A; color: #FF6B8A; }
+  .step.in-itin { background: #FFFBFD; }
+  .custom-step-name { color: #FFAAC4; font-style: italic; }
+
+  /* ── Dur / Budget wraps ── */
+  .dur-wrap { display: flex; align-items: center; gap: 4px; font-size: .8rem; color: #FFAAC4; white-space: nowrap; }
+  .dur-wrap input { width: 52px; padding: 3px 6px; border: 1.5px solid #FFD6E7; border-radius: 8px; font-size: .82rem; text-align: center; color: #5A2D4A; }
+  .dur-wrap input:focus { border-color: #FF9BB5; outline: none; }
+  .budget-wrap { display: flex; align-items: center; gap: 3px; font-size: .8rem; color: #FFAAC4; white-space: nowrap; }
+  .budget-wrap input { width: 64px; padding: 3px 6px; border: 1.5px solid #FFD6E7; border-radius: 8px; font-size: .82rem; text-align: right; color: #5A2D4A; }
+  .budget-wrap input:focus { border-color: #FF9BB5; outline: none; }
+
+  /* ── Travel gap ── */
+  .travel-gap-edit { background: #FFF8FB; padding: 4px 14px; font-size: .75rem; color: #FFAAC4; border-bottom: 1px solid #FFE4EF; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .travel-gap-edit input { width: 42px; padding: 2px 5px; border: 1.5px solid #FFD6E7; border-radius: 8px; font-size: .75rem; text-align: center; color: #5A2D4A; }
+  .travel-gap-edit input:focus { border-color: #FF9BB5; outline: none; }
+  .mode-sel { padding: 2px 8px; border: 1.5px solid #FFD6E7; border-radius: 10px; font-size: .78rem; cursor: pointer; background: white; color: #FF9BB5; }
+  .mode-sel:focus { outline: none; border-color: #FF9BB5; }
+  .travel-dist { font-size: .7rem; color: #FFCCD8; margin-left: 2px; }
+
+  /* ── Replace panel ── */
+  .replace-panel { background: #FFF8FB; border: 1.5px solid #FFD6E7; border-radius: 12px; padding: 8px 12px; margin: 2px 0; display: none; }
+  .replace-panel select { width: 100%; padding: 5px 8px; border: 1.5px solid #FFD6E7; border-radius: 8px; font-size: .85rem; color: #5A2D4A; }
+  .btn-replace { padding: 4px 12px; border: 1.5px solid #FF9BB5; color: #FF9BB5; background: white; border-radius: 10px; cursor: pointer; font-size: .78rem; white-space: nowrap; }
+  .btn-replace:hover { background: #FFF0F5; }
+
+  /* ── Time summary ── */
+  .time-summary { display: flex; flex-wrap: wrap; gap: 12px; background: white; border-radius: 14px; padding: 10px 16px; margin-bottom: 10px; box-shadow: 0 2px 10px rgba(255,105,180,.12); font-size: .85rem; color: #FFAAC4; border: 1.5px solid #FFD6E7; }
+  .time-summary span { display: flex; align-items: center; gap: 4px; }
+  .time-summary strong { color: #FF6B8A; font-weight: bold; }
+
+  /* ── Toolbar & filters ── */
   .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; }
   .filters { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
-  .filter-btn { padding: 6px 14px; border: 2px solid #1a73e8; border-radius: 20px; background: white; color: #1a73e8; cursor: pointer; font-size: 0.85rem; transition: all .15s; }
-  .filter-btn.active, .filter-btn:hover { background: #1a73e8; color: white; }
-  .btn-add { padding: 8px 20px; background: #34a853; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: bold; white-space: nowrap; }
-  .btn-add:hover { background: #2d8f47; }
-  .btn-reset { padding: 8px 14px; background: white; color: #999; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
-  .btn-reset:hover { color: #e53935; border-color: #e53935; }
+  .filter-btn { padding: 6px 16px; border: 2px solid #FF9BB5; border-radius: 20px; background: white; color: #FF9BB5; cursor: pointer; font-size: .85rem; transition: all .15s; }
+  .filter-btn.active, .filter-btn:hover { background: linear-gradient(135deg,#FF9BB5,#FF6B8A); color: white; border-color: transparent; }
+  .btn-add { padding: 8px 20px; background: linear-gradient(135deg,#FF9BB5,#FF6B8A); color: white; border: none; border-radius: 20px; cursor: pointer; font-size: .9rem; font-weight: bold; box-shadow: 0 3px 10px rgba(255,105,180,.3); transition: transform .15s; white-space: nowrap; }
+  .btn-add:hover { transform: translateY(-2px); }
+  .btn-reset { padding: 8px 14px; background: white; color: #FFAAC4; border: 1.5px solid #FFD6E7; border-radius: 20px; cursor: pointer; font-size: .85rem; }
+  .btn-reset:hover { color: #FF6B8A; border-color: #FF9BB5; }
 
-  /* 卡片 */
+  /* ── Cards ── */
   .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
-  .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.09); transition: transform .2s; }
-  .card:hover { transform: translateY(-3px); }
+  .card { background: white; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 16px rgba(255,105,180,.12); border: 1.5px solid #FFD6E7; transition: transform .2s, box-shadow .2s; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(255,105,180,.22); }
   .card-header { padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; color: white; }
-  .category-tag { font-size: 0.78rem; background: rgba(255,255,255,0.25); padding: 2px 8px; border-radius: 10px; }
-  .rating-tag { font-size: 0.95rem; font-weight: bold; }
+  .category-tag { font-size: .78rem; background: rgba(255,255,255,.25); padding: 2px 8px; border-radius: 10px; }
+  .rating-tag { font-size: .95rem; font-weight: bold; }
   .card-body { padding: 14px; }
-  .card-body h3 { font-size: 1.05rem; margin-bottom: 10px; }
-  .info-row { display: flex; gap: 8px; margin-bottom: 5px; font-size: 0.85rem; color: #555; }
+  .card-body h3 { font-size: 1.05rem; margin-bottom: 10px; color: #5A2D4A; }
+  .info-row { display: flex; gap: 8px; margin-bottom: 5px; font-size: .85rem; color: #8B4B6A; }
   .icon { width: 20px; text-align: center; flex-shrink: 0; }
-  .tips-box { margin-top: 10px; font-size: 0.83rem; color: #1a73e8; background: #e8f0fe; padding: 7px 10px; border-radius: 6px; line-height: 1.5; }
-  .card-actions { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid #f0f0f0; }
-  .btn-edit { flex: 1; padding: 6px; border: 1px solid #1a73e8; color: #1a73e8; background: white; border-radius: 6px; cursor: pointer; font-size: 0.82rem; }
-  .btn-edit:hover { background: #e8f0fe; }
-  .btn-del { flex: 1; padding: 6px; border: 1px solid #e53935; color: #e53935; background: white; border-radius: 6px; cursor: pointer; font-size: 0.82rem; }
-  .btn-del:hover { background: #fce8e6; }
+  .tips-box { margin-top: 10px; font-size: .83rem; color: #FF6B8A; background: #FFF0F5; padding: 7px 10px; border-radius: 10px; line-height: 1.5; border-left: 3px solid #FF9BB5; }
+  .card-actions { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid #FFE4EF; }
+  .btn-edit { flex: 1; padding: 6px; border: 1.5px solid #FF9BB5; color: #FF9BB5; background: white; border-radius: 10px; cursor: pointer; font-size: .82rem; transition: all .12s; }
+  .btn-edit:hover { background: #FFF0F5; }
+  .btn-del { flex: 1; padding: 6px; border: 1.5px solid #FFD6E7; color: #FFAAC4; background: white; border-radius: 10px; cursor: pointer; font-size: .82rem; }
+  .btn-del:hover { border-color: #FF9BB5; color: #FF6B8A; background: #FFF0F5; }
 
-  /* 預算表 */
-  table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.09); }
-  td { padding: 11px 18px; border-bottom: 1px solid #f0f0f0; font-size: 0.93rem; }
-  tr:last-child td { border: none; font-weight: bold; background: #e8f0fe; color: #1a73e8; }
+  /* ── Budget table ── */
+  table { width: 100%; border-collapse: collapse; background: white; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 16px rgba(255,105,180,.12); border: 1.5px solid #FFD6E7; }
+  td { padding: 11px 18px; border-bottom: 1px solid #FFE4EF; font-size: .93rem; }
+  tr:last-child td { border: none; }
+  #budget-table td:last-child { text-align: right; }
+  #budget-table .total-row td { font-weight: bold; background: linear-gradient(90deg,#FFD6E7,#FFF0F5); color: #FF6B8A; }
+  #budget-table .transport-row td:last-child input { width: 70px; padding: 3px 6px; border: 1.5px solid #FFD6E7; border-radius: 8px; font-size: .88rem; text-align: right; color: #5A2D4A; }
+  #budget-table .transport-row td:last-child input:focus { border-color: #FF9BB5; outline: none; }
 
-  /* Modal */
-  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
+  /* ── Modal ── */
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(90,45,74,.45); z-index: 100; align-items: center; justify-content: center; }
   .overlay.open { display: flex; }
-  .modal { background: white; border-radius: 14px; padding: 28px; width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
-  .modal h3 { margin-bottom: 18px; font-size: 1.15rem; color: #1a73e8; }
+  .modal { background: white; border-radius: 20px; padding: 0; width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; border: 2px solid #FFD6E7; box-shadow: 0 12px 40px rgba(255,105,180,.25); }
+  .modal-head { background: linear-gradient(135deg,#FFB6C1,#FF69B4); padding: 18px 24px; border-radius: 18px 18px 0 0; display: flex; align-items: center; gap: 10px; }
+  .modal h3 { margin: 0; font-size: 1.15rem; color: white; }
+  .modal-body { padding: 22px 24px 26px; }
   .form-group { margin-bottom: 14px; }
-  label { display: block; font-size: 0.85rem; color: #666; margin-bottom: 4px; }
-  input, select, textarea { width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.92rem; font-family: inherit; }
-  input:focus, select:focus, textarea:focus { outline: none; border-color: #1a73e8; }
+  label { display: block; font-size: .85rem; color: #8B4B6A; margin-bottom: 4px; font-weight: 500; }
+  input, select, textarea { width: 100%; padding: 9px 12px; border: 1.5px solid #FFD6E7; border-radius: 10px; font-size: .92rem; font-family: inherit; color: #5A2D4A; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: #FF9BB5; box-shadow: 0 0 0 3px rgba(255,155,181,.15); }
   textarea { resize: vertical; min-height: 60px; }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-  .btn-save { flex: 1; padding: 10px; background: #1a73e8; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: bold; }
-  .btn-save:hover { background: #1557b0; }
-  .btn-cancel { padding: 10px 18px; background: white; color: #666; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 0.95rem; }
+  .btn-save { flex: 1; padding: 10px; background: linear-gradient(135deg,#FF9BB5,#FF6B8A); color: white; border: none; border-radius: 12px; cursor: pointer; font-size: .95rem; font-weight: bold; box-shadow: 0 3px 10px rgba(255,105,180,.3); }
+  .btn-save:hover { opacity: .9; }
+  .btn-cancel { padding: 10px 18px; background: white; color: #FFAAC4; border: 1.5px solid #FFD6E7; border-radius: 12px; cursor: pointer; font-size: .95rem; }
+  .btn-cancel:hover { border-color: #FF9BB5; color: #FF6B8A; }
 
-  footer { text-align: center; padding: 20px; color: #aaa; font-size: 0.78rem; }
-  .empty-msg { text-align: center; color: #aaa; padding: 40px; grid-column: 1/-1; }
+  /* ── Footer ── */
+  footer { position: relative; z-index: 1; text-align: center; padding: 40px 20px 32px; background: linear-gradient(135deg,#FFB6C1,#FF69B4,#FFB6C1); color: white; margin-top: 20px; }
+  .footer-bunnies { display: flex; justify-content: center; gap: 14px; margin-bottom: 16px; }
+  footer p { opacity: .85; font-size: .8rem; margin-top: 6px; }
+  .empty-msg { text-align: center; color: #FFB6C1; padding: 40px; grid-column: 1/-1; }
 </style>
 </head>
 <body>
 
+<!-- 浮動愛心背景 -->
+<div class="heart-bg" id="heart-bg"></div>
+
 <header>
-  <h1>淡水一日遊</h1>
+  <div class="header-bunny-row">
+    <div class="bounce"  id="hb-l"></div>
+    <div class="bounce2" id="hb-c"></div>
+    <div class="bounce"  id="hb-r"></div>
+  </div>
+  <h1>🌊 淡水一日遊 🐰</h1>
   <p id="subtitle">載入中…</p>
+  <div class="header-hearts">💗 💕 💖 💗 💕</div>
 </header>
 
 <section>
-  <h2>建議行程 <span id="itinerary-note" style="font-size:0.78rem;color:#888;font-weight:normal;margin-left:8px;"></span></h2>
+  <h2>🐰 建議行程 <span id="itinerary-note" style="font-size:0.78rem;font-weight:normal;opacity:.7;margin-left:4px;"></span></h2>
   <div class="itin-toolbar">
     <label>出發時間 <input type="time" id="start-time" value="09:00" onchange="renderItinerary(load())"></label>
     <button class="btn-auto" onclick="autoArrange()">自動排列</button>
@@ -149,7 +196,7 @@
 </section>
 
 <section>
-  <h2>景點管理</h2>
+  <h2>💗 景點管理</h2>
   <div class="toolbar">
     <div class="filters" id="filters"></div>
     <button class="btn-reset" onclick="resetData()">還原預設</button>
@@ -159,58 +206,67 @@
 </section>
 
 <section>
-  <h2>預算估算</h2>
+  <h2>💰 預算估算</h2>
   <table id="budget-table"><tbody id="budget-body"></tbody></table>
 </section>
 
-<footer>資料儲存於瀏覽器本機（localStorage），清除瀏覽器資料前永久保留</footer>
+<footer>
+  <div class="footer-bunnies" id="footer-bunnies"></div>
+  <p style="font-size:1rem;font-weight:bold;letter-spacing:1px;">因為愛你，所以才這樣規劃旅程 💗</p>
+  <p>資料儲存於瀏覽器本機（localStorage），清除瀏覽器資料前永久保留</p>
+</footer>
 
 <!-- 新增 / 編輯 Modal -->
 <div class="overlay" id="overlay" onclick="closeOnBg(event)">
   <div class="modal">
-    <h3 id="modal-title">新增景點</h3>
-    <div class="form-group">
-      <label>景點名稱 *</label>
-      <input id="f-name" type="text" placeholder="例：淡水老街">
+    <div class="modal-head">
+      <span id="modal-head-bunny"></span>
+      <h3 id="modal-title">新增景點</h3>
     </div>
-    <div class="form-row">
+    <div class="modal-body">
       <div class="form-group">
-        <label>類別 *</label>
-        <select id="f-category">
-          <option>景點</option>
-          <option>古蹟</option>
-          <option>美食</option>
-          <option>咖啡廳</option>
-          <option>廟宇</option>
-          <option>其他</option>
-        </select>
+        <label>景點名稱 *</label>
+        <input id="f-name" type="text" placeholder="例：淡水老街">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>類別 *</label>
+          <select id="f-category">
+            <option>景點</option>
+            <option>古蹟</option>
+            <option>美食</option>
+            <option>咖啡廳</option>
+            <option>廟宇</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>評分（1.0–5.0）*</label>
+          <input id="f-rating" type="number" min="1" max="5" step="0.1" placeholder="4.2">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>建議停留時間</label>
+          <input id="f-duration" type="text" placeholder="例：1–2 小時">
+        </div>
+        <div class="form-group">
+          <label>費用</label>
+          <input id="f-price" type="text" placeholder="例：免費 / NT$80">
+        </div>
       </div>
       <div class="form-group">
-        <label>評分（1.0–5.0）*</label>
-        <input id="f-rating" type="number" min="1" max="5" step="0.1" placeholder="4.2">
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>建議停留時間</label>
-        <input id="f-duration" type="text" placeholder="例：1–2 小時">
+        <label>交通方式</label>
+        <input id="f-transport" type="text" placeholder="例：淡水站步行 5 分鐘">
       </div>
       <div class="form-group">
-        <label>費用</label>
-        <input id="f-price" type="text" placeholder="例：免費 / NT$80">
+        <label>小提示</label>
+        <textarea id="f-tips" placeholder="推薦必吃、最佳時段…"></textarea>
       </div>
-    </div>
-    <div class="form-group">
-      <label>交通方式</label>
-      <input id="f-transport" type="text" placeholder="例：淡水站步行 5 分鐘">
-    </div>
-    <div class="form-group">
-      <label>小提示</label>
-      <textarea id="f-tips" placeholder="推薦必吃、最佳時段…"></textarea>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">取消</button>
-      <button class="btn-save" onclick="saveAttraction()">儲存</button>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal()">取消</button>
+        <button class="btn-save" onclick="saveAttraction()">儲存 💗</button>
+      </div>
     </div>
   </div>
 </div>
@@ -218,24 +274,29 @@
 <!-- 新增自訂行程項目 Modal -->
 <div class="overlay" id="overlay-custom" onclick="if(event.target===this)closeCustomStep()">
   <div class="modal">
-    <h3>新增自訂行程項目</h3>
-    <div class="form-group">
-      <label>項目名稱 *（例：午休、移動至漁人碼頭）</label>
-      <input id="cs-name" type="text" placeholder="例：搭公車前往紅毛城">
+    <div class="modal-head">
+      <span id="custom-head-bunny"></span>
+      <h3>🐰 新增自訂行程項目</h3>
     </div>
-    <div class="form-row">
+    <div class="modal-body">
       <div class="form-group">
-        <label>所需時間</label>
-        <input id="cs-duration" type="text" placeholder="例：30 分鐘">
+        <label>項目名稱 *（例：午休、移動至漁人碼頭）</label>
+        <input id="cs-name" type="text" placeholder="例：搭公車前往紅毛城">
       </div>
-      <div class="form-group">
-        <label>移動時間（分鐘）</label>
-        <input id="cs-travel" type="number" value="15" min="0" max="120">
+      <div class="form-row">
+        <div class="form-group">
+          <label>所需時間</label>
+          <input id="cs-duration" type="text" placeholder="例：30 分鐘">
+        </div>
+        <div class="form-group">
+          <label>移動時間（分鐘）</label>
+          <input id="cs-travel" type="number" value="15" min="0" max="120">
+        </div>
       </div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeCustomStep()">取消</button>
-      <button class="btn-save" onclick="saveCustomStep()">加入行程</button>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeCustomStep()">取消</button>
+        <button class="btn-save" onclick="saveCustomStep()">加入行程 💗</button>
+      </div>
     </div>
   </div>
 </div>
@@ -849,6 +910,92 @@ function resetData() {
 }
 
 render();
+
+// ── 兔兔 SVG 產生器 ───────────────────────────────────────────────
+function mkBunny(expr, c, sz) {
+  expr = expr || 'happy'; c = c || '#FFB6C1'; sz = sz || 70;
+  const isBlue = expr === 'blue';
+  const body  = isBlue ? '#85C1E9' : c;
+  const inner = isBlue ? '#5B9FBF' : '#FF91A4';
+  const nose  = isBlue ? '#5B9FBF' : '#FF8FAB';
+  const heart = isBlue ? '#4A8EB5' : '#FF4477';
+
+  function dot(cx,cy,r,f){return `<circle cx="${cx}" cy="${cy}" r="${r||4}" fill="${f||'#333'}"/>`;}
+  function shine(cx,cy,r){return `<circle cx="${cx}" cy="${cy}" r="${r||1.5}" fill="white"/>`;}
+  function xEye(lx,y){return `<line x1="${lx}" y1="${y}" x2="${lx+6}" y2="${y+6}" stroke="#333" stroke-width="2.8" stroke-linecap="round"/>
+    <line x1="${lx}" y1="${y+6}" x2="${lx+6}" y2="${y}" stroke="#333" stroke-width="2.8" stroke-linecap="round"/>`;}
+  function halfEye(cx,y){return `<path d="M${cx-5},${y} Q${cx},${y-6} ${cx+5},${y}" stroke="#333" stroke-width="2.8" fill="none" stroke-linecap="round"/>`;}
+  function heartEye(lx,ty){return `<path d="M${lx+3},${ty+4} C${lx+1},${ty} ${lx-3},${ty} ${lx-3},${ty+3} C${lx-3},${ty+6} ${lx},${ty+8} ${lx+3},${ty+10} C${lx+6},${ty+8} ${lx+9},${ty+6} ${lx+9},${ty+3} C${lx+9},${ty} ${lx+5},${ty} ${lx+3},${ty+4}Z" fill="#FF4477"/>`;}
+  function tears(){return `<ellipse cx="27" cy="65" rx="3" ry="5" fill="#ADE8F4" opacity=".8"/>
+    <ellipse cx="53" cy="65" rx="3" ry="5" fill="#ADE8F4" opacity=".8"/>
+    <ellipse cx="25" cy="73" rx="2.5" ry="3.5" fill="#ADE8F4" opacity=".7"/>
+    <ellipse cx="55" cy="73" rx="2.5" ry="3.5" fill="#ADE8F4" opacity=".7"/>`;}
+
+  const eyeMap = {
+    happy:   dot(33,50)+dot(47,50)+shine(34.5,48.5)+shine(48.5,48.5),
+    cry:     xEye(30,46)+xEye(44,46),
+    shock:   dot(33,49,6)+dot(47,49,6)+shine(31,47,2)+shine(45,47,2),
+    love:    heartEye(27,47)+heartEye(41,47),
+    grumpy:  halfEye(33,52)+halfEye(47,52),
+    excited: dot(33,49,6.5)+dot(47,49,6.5)+shine(31,47,2)+shine(45,47,2),
+    hmm:     dot(33,51,3.5)+dot(47,51,3.5),
+    blue:    dot(33,51,4,'#4A8EB5')+dot(47,51,4,'#4A8EB5'),
+  };
+  const mouthMap = {
+    happy:   `<path d="M34,62 Q40,68 46,62" stroke="#FF8FAB" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+    cry:     `<ellipse cx="40" cy="67" rx="7" ry="8" fill="#555"/>`+tears(),
+    shock:   `<ellipse cx="40" cy="68" rx="8.5" ry="9.5" fill="#555"/>`,
+    love:    `<path d="M34,63 Q40,70 46,63" stroke="#FF8FAB" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+    grumpy:  `<path d="M34,67 Q40,62 46,67" stroke="#FF8FAB" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+    excited: `<ellipse cx="40" cy="68" rx="9" ry="10" fill="#555"/>`,
+    hmm:     `<ellipse cx="40" cy="64" rx="5" ry="4" fill="#FF8FAB"/>`,
+    blue:    `<path d="M34,65 Q40,59 46,65" stroke="#4A8EB5" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
+  };
+  const h = Math.round(sz*110/80);
+  return `<svg viewBox="0 0 80 110" xmlns="http://www.w3.org/2000/svg" width="${sz}" height="${h}">
+  <ellipse cx="25" cy="21" rx="9.5" ry="24" fill="${body}"/>
+  <ellipse cx="25" cy="22" rx="5.5" ry="19" fill="${inner}"/>
+  <ellipse cx="55" cy="21" rx="9.5" ry="24" fill="${body}"/>
+  <ellipse cx="55" cy="22" rx="5.5" ry="19" fill="${inner}"/>
+  <circle  cx="40" cy="54" r="26" fill="${body}"/>
+  <ellipse cx="40" cy="88" rx="28" ry="23" fill="${body}"/>
+  <path d="M40,83 C37,78 31,78 31,84 C31,88 37,93 40,96 C43,93 49,88 49,84 C49,78 43,78 40,83Z" fill="${heart}"/>
+  ${eyeMap[expr]||eyeMap.happy}
+  <ellipse cx="40" cy="61" rx="3.5" ry="2.5" fill="${nose}"/>
+  ${mouthMap[expr]||mouthMap.happy}
+</svg>`;
+}
+
+// ── Header 兔兔 ───────────────────────────────────────────────────
+document.getElementById('hb-l').innerHTML = mkBunny('love',    '#FFB6C1', 78);
+document.getElementById('hb-c').innerHTML = mkBunny('excited', '#FFB6C1', 100);
+document.getElementById('hb-r').innerHTML = mkBunny('happy',   '#FFB6C1', 78);
+
+// ── Modal 小兔兔 ─────────────────────────────────────────────────
+document.getElementById('modal-head-bunny').innerHTML  = mkBunny('love',  '#FFD6E7', 36);
+document.getElementById('custom-head-bunny').innerHTML = mkBunny('happy', '#FFD6E7', 36);
+
+// ── Footer 兔兔 ───────────────────────────────────────────────────
+const fb = document.getElementById('footer-bunnies');
+['cry','love','happy','excited'].forEach(e=>{
+  const d = document.createElement('div');
+  d.innerHTML = mkBunny(e,'#FFD6E7',60);
+  fb.appendChild(d);
+});
+
+// ── 浮動愛心背景 ──────────────────────────────────────────────────
+const chars = ['💗','💕','💖','💓','♡','✨','🐰','💗','💕','♡'];
+const hc = document.getElementById('heart-bg');
+for (let i = 0; i < 30; i++) {
+  const el = document.createElement('div');
+  el.className = 'fh';
+  el.textContent = chars[Math.floor(Math.random()*chars.length)];
+  el.style.left   = Math.random()*100+'vw';
+  el.style.fontSize = (.7+Math.random()*1.3)+'rem';
+  el.style.animationDuration = (9+Math.random()*14)+'s';
+  el.style.animationDelay   = (-Math.random()*23)+'s';
+  hc.appendChild(el);
+}
 </script>
 </body>
 </html>
