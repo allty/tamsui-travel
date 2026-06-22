@@ -47,6 +47,32 @@
   .btn-add-itin:hover { background: #e8f5e9; }
   .step.in-itin { background: #f9fffe; }
   .custom-step-name { color: #555; font-style: italic; }
+  /* 停留時間 inline 輸入 */
+  .dur-wrap { display: flex; align-items: center; gap: 4px; font-size: 0.8rem; color: #666; white-space: nowrap; }
+  .dur-wrap input { width: 52px; padding: 3px 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.82rem; text-align: center; }
+  .dur-wrap input:focus { border-color: #1a73e8; outline: none; }
+  /* 移動時間 inline 編輯 */
+  .travel-gap-edit { background: #fafbfc; padding: 4px 16px 4px 16px; font-size: 0.75rem; color: #aaa; border-bottom: 1px solid #f0f4f8; display: flex; align-items: center; gap: 6px; }
+  .travel-gap-edit input { width: 42px; padding: 2px 5px; border: 1px solid #ddd; border-radius: 5px; font-size: 0.75rem; text-align: center; }
+  .travel-gap-edit input:focus { border-color: #1a73e8; outline: none; }
+  /* 替換面板 */
+  .replace-panel { background: #fff8e1; border: 1px solid #ffd54f; border-radius: 6px; padding: 6px 10px; margin: 2px 0; display: none; }
+  .replace-panel select { width: 100%; padding: 5px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; }
+  .btn-replace { padding: 4px 10px; border: 1px solid #fb8c00; color: #fb8c00; background: white; border-radius: 6px; cursor: pointer; font-size: 0.78rem; white-space: nowrap; }
+  .btn-replace:hover { background: #fff3e0; }
+  /* 時間總計列 */
+  .time-summary { display: flex; flex-wrap: wrap; gap: 12px; background: white; border-radius: 10px; padding: 10px 16px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); font-size: 0.85rem; color: #555; }
+  .time-summary span { display: flex; align-items: center; gap: 4px; }
+  .time-summary strong { color: #1a73e8; }
+  /* 預算輸入 */
+  .budget-wrap { display: flex; align-items: center; gap: 3px; font-size: 0.8rem; color: #666; white-space: nowrap; }
+  .budget-wrap input { width: 64px; padding: 3px 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.82rem; text-align: right; }
+  .budget-wrap input:focus { border-color: #34a853; outline: none; }
+  /* 動態預算表 */
+  #budget-table td:last-child { text-align: right; }
+  #budget-table .total-row td { font-weight: bold; background: #e8f0fe; color: #1a73e8; }
+  #budget-table .transport-row td:last-child input { width: 70px; padding: 3px 6px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.88rem; text-align: right; }
+  #budget-table .transport-row td:last-child input:focus { border-color: #1a73e8; outline: none; }
 
   /* 工具列 */
   .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; }
@@ -130,14 +156,7 @@
 
 <section>
   <h2>預算估算</h2>
-  <table>
-    <tr><td>門票（紅毛城）</td><td>NT$80</td></tr>
-    <tr><td>早午餐老街小吃</td><td>NT$150–200</td></tr>
-    <tr><td>下午茶</td><td>NT$200–300</td></tr>
-    <tr><td>漁人碼頭晚餐</td><td>NT$300–500</td></tr>
-    <tr><td>交通（捷運＋公車）</td><td>NT$50–100</td></tr>
-    <tr><td>合計</td><td>NT$780–1,180</td></tr>
-  </table>
+  <table id="budget-table"><tbody id="budget-body"></tbody></table>
 </section>
 
 <footer>資料儲存於瀏覽器本機（localStorage），清除瀏覽器資料前永久保留</footer>
@@ -250,7 +269,7 @@ const DEFAULTS = [
 const KEY = "tamsui_attractions";
 const ITIN_KEY = "tamsui_itinerary";
 const VERSION_KEY = "tamsui_version";
-const DATA_VERSION = "3";
+const DATA_VERSION = "5";
 let editingId = null;
 let activeFilter = "all";
 
@@ -281,10 +300,96 @@ function buildAutoItin(data) {
     iid: s.id || Date.now() + Math.random(),
     name: s.name,
     duration: s.duration || "1 小時",
+    durMin: Math.round(parseDuration(s.duration || "1 小時")),
     travelMin: TRAVEL,
+    budget: parsePrice(s.price),
     custom: false,
     attractionId: s.id,
   }));
+}
+
+// 從價格文字解析最低預估金額
+function parsePrice(str) {
+  if (!str) return 0;
+  if (/免費/.test(str)) return 0;
+  const m = str.match(/NT\$\s*(\d+)/);
+  return m ? parseInt(m[1]) : 0;
+}
+
+function updateStepBudget(iid, val) {
+  const v = Math.max(0, parseInt(val) || 0);
+  const itin = loadItin() || [];
+  const item = itin.find(x => x.iid === iid);
+  if (item) { item.budget = v; saveItin(itin); renderBudget(); }
+}
+
+const TRANSPORT_KEY = "tamsui_transport";
+function getTransport() { return parseInt(localStorage.getItem(TRANSPORT_KEY) || "75"); }
+function setTransport(v) { localStorage.setItem(TRANSPORT_KEY, Math.max(0, parseInt(v) || 0)); renderBudget(); }
+
+function renderBudget() {
+  const itin = loadItin() || [];
+  const tbody = document.getElementById("budget-body");
+  if (!tbody) return;
+  const items = itin.filter(x => x.budget > 0 || !x.custom);
+  let total = 0;
+  let rows = items.map(item => {
+    const b = item.budget || 0;
+    total += b;
+    return `<tr>
+      <td>${item.name}</td>
+      <td>NT$${b > 0 ? b.toLocaleString() : "–"}</td>
+    </tr>`;
+  }).join("");
+  const transport = getTransport();
+  total += transport;
+  rows += `<tr class="transport-row">
+    <td>交通費（捷運＋公車）</td>
+    <td>NT$<input type="number" value="${transport}" min="0" max="9999"
+      onchange="setTransport(this.value)" title="可自行修改"></td>
+  </tr>`;
+  rows += `<tr class="total-row">
+    <td>合計</td>
+    <td>NT$${total.toLocaleString()}</td>
+  </tr>`;
+  tbody.innerHTML = rows;
+}
+
+function updateStepDur(iid, val) {
+  const v = Math.max(5, Math.min(720, parseInt(val) || 60));
+  const itin = loadItin() || [];
+  const item = itin.find(x => x.iid === iid);
+  if (item) { item.durMin = v; saveItin(itin); renderItinerary(load()); }
+}
+
+function updateStepTravel(iid, val) {
+  const v = Math.max(0, Math.min(180, parseInt(val) || 15));
+  const itin = loadItin() || [];
+  const item = itin.find(x => x.iid === iid);
+  if (item) { item.travelMin = v; saveItin(itin); renderItinerary(load()); }
+}
+
+function toggleReplace(iid) {
+  const panel = document.getElementById(`rp-${iid}`);
+  if (panel) panel.style.display = panel.style.display === "block" ? "none" : "block";
+}
+
+function replaceStep(iid, aid) {
+  if (!aid) return;
+  const data = load();
+  const a = data.find(x => x.id === parseInt(aid));
+  if (!a) return;
+  const itin = loadItin() || [];
+  const item = itin.find(x => x.iid === iid);
+  if (item) {
+    item.name = a.name;
+    item.duration = a.duration || "1 小時";
+    item.durMin = Math.round(parseDuration(a.duration || "1 小時"));
+    item.attractionId = a.id;
+    item.custom = false;
+    saveItin(itin);
+    renderItinerary(data);
+  }
 }
 
 function autoArrange() {
@@ -302,7 +407,7 @@ function addToItin(attractionId) {
   if (itin.find(x => x.attractionId === attractionId)) {
     alert(`「${a.name}」已在行程中`); return;
   }
-  itin.push({ iid: Date.now(), name: a.name, duration: a.duration || "1 小時", travelMin: TRAVEL, custom: false, attractionId });
+  itin.push({ iid: Date.now(), name: a.name, duration: a.duration || "1 小時", durMin: Math.round(parseDuration(a.duration || "1 小時")), travelMin: TRAVEL, budget: parsePrice(a.price), custom: false, attractionId });
   saveItin(itin);
   renderItinerary(data);
 }
@@ -413,14 +518,17 @@ function renderItinerary(data) {
     return;
   }
 
-  // 取得行程（若無則自動產生）
   let itin = loadItin();
   if (!itin) { itin = buildAutoItin(data); saveItin(itin); }
+
+  // 確保每個 item 都有 durMin
+  itin.forEach(item => {
+    if (!item.durMin) item.durMin = Math.round(parseDuration(item.duration || "1 小時"));
+  });
 
   let t = getStartMin();
   const inItinIds = new Set(itin.map(x => x.attractionId).filter(Boolean));
 
-  // 更新卡片按鈕狀態
   document.querySelectorAll(".btn-add-itin").forEach(btn => {
     const aid = parseInt(btn.dataset.id);
     btn.textContent = inItinIds.has(aid) ? "已加入" : "加入行程";
@@ -428,31 +536,69 @@ function renderItinerary(data) {
     btn.style.opacity = inItinIds.has(aid) ? "0.5" : "1";
   });
 
+  // 計算時間總計
+  const totalStay   = itin.reduce((s, x) => s + (x.durMin || 60), 0);
+  const totalTravel = itin.reduce((s, x, i) => s + (i < itin.length - 1 ? (x.travelMin ?? TRAVEL) : 0), 0);
+  const totalMin    = totalStay + totalTravel + 10;
+  const fmtDur = m => m >= 60 ? `${Math.floor(m/60)}h${m%60 ? (m%60)+"m" : ""}` : `${m}m`;
+
+  // 替換下拉選項
+  const replaceOptions = data.map(a =>
+    `<option value="${a.id}">${a.name}（${a.category} ${a.rating}★）</option>`
+  ).join("");
+
   const startTime = fmt(t);
-  let html = `<div class="step" style="border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+  let html = `<div class="time-summary">
+    <span>景點停留 <strong>${fmtDur(totalStay)}</strong></span>
+    <span>移動時間 <strong>${fmtDur(totalTravel)}</strong></span>
+    <span>全程合計 <strong>${fmtDur(totalMin)}</strong></span>
+  </div>
+  <div class="step" style="border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
     <span class="time">${startTime}</span><span class="step-name">捷運淡水站出發</span>
   </div>`;
-  t += 10; // 10 分鐘走出捷運站
+  t += 10;
 
   itin.forEach((item, idx) => {
-    const dur = Math.round(parseDuration(item.duration));
-    const startT = fmt(t);
-    const endT   = fmt(t + dur);
+    const dur     = item.durMin || 60;
+    const travel  = item.travelMin ?? TRAVEL;
+    const startT  = fmt(t);
     const isFirst = idx === 0;
     const isLast  = idx === itin.length - 1;
 
-    html += `<div class="travel-gap" style="padding-left:16px;">↓ 移動約 ${item.travelMin || 15} 分鐘</div>
+    html += `
+    <div class="travel-gap-edit">
+      ↓ 移動
+      <input type="number" value="${travel}" min="0" max="180"
+        onchange="updateStepTravel(${item.iid}, this.value)" title="移動時間（分鐘）">
+      分鐘
+    </div>
     <div class="step in-itin" style="border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
       <div class="step-controls">
         <button class="btn-move" onclick="moveStep(${item.iid},-1)" ${isFirst?"disabled":""}>▲</button>
         <button class="btn-move" onclick="moveStep(${item.iid},1)"  ${isLast?"disabled":""}>▼</button>
       </div>
       <span class="time">${startT}</span>
-      <span class="step-name ${item.custom ? "custom-step-name" : ""}">${item.name}</span>
-      <span class="dur-badge">${item.duration}</span>
+      <span class="step-name ${item.custom?"custom-step-name":""}">${item.name}</span>
+      <div class="dur-wrap">
+        停留
+        <input type="number" value="${dur}" min="5" max="720"
+          onchange="updateStepDur(${item.iid}, this.value)" title="停留時間（分鐘）">
+        分鐘
+      </div>
+      <div class="budget-wrap">
+        NT$<input type="number" value="${item.budget || 0}" min="0" max="99999"
+          onchange="updateStepBudget(${item.iid}, this.value)" title="預估花費（NT$）">
+      </div>
+      <button class="btn-replace" onclick="toggleReplace(${item.iid})">替換</button>
       <button class="btn-remove-step" onclick="removeStep(${item.iid})" title="移除">✕</button>
+    </div>
+    <div class="replace-panel" id="rp-${item.iid}">
+      <select onchange="replaceStep(${item.iid}, this.value)">
+        <option value="">── 選擇替換景點 ──</option>
+        ${replaceOptions}
+      </select>
     </div>`;
-    t += dur + (item.travelMin ?? TRAVEL);
+    t += dur + travel;
   });
 
   const returnTime = fmt(t);
@@ -464,6 +610,7 @@ function renderItinerary(data) {
   el.innerHTML = html;
   document.getElementById("itinerary-note").textContent =
     `（${itin.length} 個行程項目，預計 ${returnTime} 返程）`;
+  renderBudget();
 }
 
 function load() {
