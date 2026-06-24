@@ -5,268 +5,273 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>淡水一日遊計畫</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif; background: #f0f4f8; color: #333; }
+:root {
+  --blue: #1a73e8;
+  --blue-dk: #0d47a1;
+  --blue-lt: #e8f0fe;
+  --teal: #00acc1;
+  --bg: #f0f5ff;
+  --surface: #fff;
+  --text: #1e293b;
+  --muted: #64748b;
+  --border: #dde8ff;
+  --s1: 0 2px 8px rgba(26,115,232,.09), 0 1px 3px rgba(0,0,0,.06);
+  --s2: 0 4px 20px rgba(26,115,232,.13), 0 2px 8px rgba(0,0,0,.07);
+  --s3: 0 8px 32px rgba(26,115,232,.18), 0 4px 12px rgba(0,0,0,.1);
+  --r: 16px;
+  --r-sm: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: "Noto Sans TC","Microsoft JhengHei",sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
 
-  /* ── Header ── */
-  header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 32px 20px; text-align: center; }
-  header h1 { font-size: 1.8rem; margin-bottom: 8px; }
-  header p  { opacity: .85; font-size: .9rem; }
+/* ── Header ── */
+header { background: linear-gradient(140deg,#1a73e8 0%,#0552d4 55%,#0d47a1 100%); color: white; padding: 36px 20px 0; text-align: center; position: relative; overflow: hidden; }
+header::before { content:""; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff' fill-opacity='.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E"); }
+.header-inner { position:relative; z-index:1; }
+header h1 { font-size:1.9rem; font-weight:700; letter-spacing:.02em; margin-bottom:6px; text-shadow:0 2px 10px rgba(0,0,0,.2); }
+header .subtitle { opacity:.88; font-size:.88rem; margin-bottom:18px; }
+.header-stats { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:22px; }
+.stat-chip { background:rgba(255,255,255,.16); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.25); border-radius:20px; padding:5px 14px; font-size:.8rem; font-weight:500; }
+.header-wave { display:block; width:100%; margin-bottom:-2px; }
 
-  /* ── Section ── */
-  section { max-width: 1060px; margin: 24px auto; padding: 0 16px; }
-  h2 { font-size: 1.2rem; margin-bottom: 14px; color: #1a73e8; border-left: 4px solid #1a73e8; padding-left: 10px; }
+/* ── Tab nav ── */
+.tab-nav { position:sticky; top:0; z-index:50; background:var(--surface); border-bottom:1px solid var(--border); box-shadow:0 2px 12px rgba(26,115,232,.1); display:flex; justify-content:center; }
+.tab-btn { flex:1; max-width:160px; padding:13px 8px; border:none; background:none; cursor:pointer; font-size:.88rem; font-weight:600; color:var(--muted); border-bottom:3px solid transparent; transition:all .2s; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:5px; }
+.tab-btn.active { color:var(--blue); border-bottom-color:var(--blue); }
+.tab-btn:hover:not(.active) { color:var(--text); background:#f8faff; }
 
-  /* ── Itinerary ── */
-  .itinerary { display: flex; flex-direction: column; gap: 8px; }
-  .slot-block { border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
-  .slot-header { display: flex; justify-content: space-between; align-items: center; padding: 9px 16px; color: white; }
-  .slot-label { font-weight: bold; font-size: .92rem; }
-  .slot-range  { font-size: .8rem; opacity: .88; }
-  .step { display: flex; align-items: center; gap: 10px; background: white; padding: 10px 14px; border-bottom: 1px solid #f0f0f0; }
-  .slot-block .step:last-child { border-bottom: none; }
-  .time { font-weight: bold; color: #1a73e8; min-width: 52px; font-size: .88rem; flex-shrink: 0; }
-  .step-name { flex: 1; font-size: .93rem; color: #333; }
-  .dur-badge { font-size: .74rem; color: #666; background: #f0f4f8; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
-  .travel-gap { background: #f8faff; padding: 3px 16px 3px 80px; font-size: .73rem; color: #aaa; border-bottom: 1px solid #f0f0f0; }
-  .return-step { background: #e8f0fe !important; border-radius: 8px; }
-  .step-return { color: #1a73e8; font-style: italic; }
+/* ── Tab content ── */
+.tab-content { display:none; }
+.tab-content.active { display:block; }
 
-  /* ── Itin toolbar ── */
-  .itin-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
-  .itin-toolbar label { font-size: .85rem; color: #555; display: flex; align-items: center; gap: 6px; }
-  .itin-toolbar input[type=time] { width: auto; padding: 8px 10px; font-size: .9rem; border: 1.5px solid #c5d8ff; border-radius: 8px; color: #333; }
-  .btn-auto { padding: 10px 18px; background: #1a73e8; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: .88rem; box-shadow: 0 2px 6px rgba(26,115,232,.3); transition: transform .15s; }
-  .btn-auto:hover { transform: translateY(-2px); }
-  .btn-custom { padding: 10px 16px; background: white; color: #1a73e8; border: 2px solid #1a73e8; border-radius: 20px; cursor: pointer; font-size: .88rem; transition: all .15s; }
-  .btn-custom:hover { background: #e8f0fe; }
+/* ── Wrap ── */
+.wrap { max-width:960px; margin:0 auto; padding:22px 16px 32px; }
 
-  /* ── Step two-row layout ── */
-  .step.in-itin { flex-direction: column; align-items: stretch; gap: 0; background: #fafcff; padding: 10px 14px; }
-  .step-row-top { display: flex; align-items: center; gap: 8px; }
-  .step-row-bottom { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; padding-top: 8px; border-top: 1px solid #eef2ff; }
-  .step-controls { display: flex; gap: 4px; flex-shrink: 0; }
-  .btn-move { width: 34px; height: 34px; border: 1.5px solid #c5d8ff; background: white; border-radius: 8px; cursor: pointer; font-size: .85rem; color: #1a73e8; transition: all .12s; }
-  .btn-move:hover { background: #e8f0fe; }
-  .btn-remove-step { width: 34px; height: 34px; border: 1.5px solid #ddd; background: white; border-radius: 8px; cursor: pointer; font-size: .85rem; color: #999; margin-left: auto; flex-shrink: 0; }
-  .btn-remove-step:hover { background: #fff0f0; border-color: #e57373; color: #e57373; }
-  .btn-add-itin { flex: 1; padding: 8px 6px; border: 1.5px solid #1a73e8; color: #1a73e8; background: white; border-radius: 8px; cursor: pointer; font-size: .85rem; transition: all .12s; min-height: 38px; }
-  .btn-add-itin:hover { background: #e8f0fe; }
-  .custom-step-name { color: #888; font-style: italic; }
+/* ── Section title ── */
+.section-title { font-size:1.05rem; font-weight:700; color:var(--text); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+.section-title::before { content:""; width:4px; height:18px; background:var(--blue); border-radius:2px; flex-shrink:0; }
 
-  /* ── Dur / Budget wraps ── */
-  .dur-wrap { display: flex; align-items: center; gap: 4px; font-size: .82rem; color: #666; white-space: nowrap; }
-  .dur-wrap input { width: 56px; padding: 5px 6px; border: 1.5px solid #c5d8ff; border-radius: 6px; font-size: .85rem; text-align: center; color: #333; }
-  .dur-wrap input:focus { border-color: #1a73e8; outline: none; }
-  .budget-wrap { display: flex; align-items: center; gap: 3px; font-size: .82rem; color: #666; white-space: nowrap; }
-  .budget-wrap input { width: 70px; padding: 5px 6px; border: 1.5px solid #c5d8ff; border-radius: 6px; font-size: .85rem; text-align: right; color: #333; }
-  .budget-wrap input:focus { border-color: #1a73e8; outline: none; }
+/* ── Itin toolbar ── */
+.itin-toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px; background:var(--surface); border-radius:var(--r-sm); padding:14px 16px; box-shadow:var(--s1); }
+.itin-toolbar label { font-size:.85rem; color:var(--muted); display:flex; align-items:center; gap:8px; font-weight:500; }
+.itin-toolbar input[type=time] { padding:8px 10px; font-size:.9rem; border:1.5px solid var(--border); border-radius:8px; color:var(--text); font-family:inherit; background:#fafcff; }
+.itin-toolbar input[type=time]:focus { border-color:var(--blue); outline:none; }
+.btn-auto { padding:10px 20px; background:var(--blue); color:white; border:none; border-radius:20px; cursor:pointer; font-size:.88rem; font-weight:600; box-shadow:0 2px 8px rgba(26,115,232,.35); transition:all .2s; font-family:inherit; }
+.btn-auto:hover { background:#1557b0; box-shadow:0 4px 16px rgba(26,115,232,.4); transform:translateY(-1px); }
+.btn-custom { padding:10px 18px; background:white; color:var(--blue); border:2px solid var(--blue); border-radius:20px; cursor:pointer; font-size:.88rem; font-weight:600; transition:all .2s; font-family:inherit; }
+.btn-custom:hover { background:var(--blue-lt); }
 
-  /* ── Travel gap ── */
-  .travel-gap-edit { background: #f8faff; padding: 6px 14px; font-size: .78rem; color: #888; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .travel-gap-edit input { width: 48px; padding: 4px 6px; border: 1.5px solid #c5d8ff; border-radius: 6px; font-size: .78rem; text-align: center; color: #333; }
-  .travel-gap-edit input:focus { border-color: #1a73e8; outline: none; }
-  .mode-sel { padding: 4px 8px; border: 1.5px solid #c5d8ff; border-radius: 8px; font-size: .8rem; cursor: pointer; background: white; color: #555; min-height: 32px; }
-  .mode-sel:focus { outline: none; border-color: #1a73e8; }
-  .travel-dist { font-size: .72rem; color: #aaa; margin-left: 2px; }
+/* ── Itinerary ── */
+.itinerary { display:flex; flex-direction:column; gap:0; border-radius:var(--r-sm); overflow:hidden; box-shadow:var(--s2); }
+.time-summary { display:flex; flex-wrap:wrap; gap:10px; background:linear-gradient(135deg,#e8f0fe,#f0f5ff); padding:12px 16px; font-size:.83rem; color:var(--muted); border-bottom:1px solid var(--border); }
+.time-summary span { display:flex; align-items:center; gap:4px; }
+.time-summary strong { color:var(--blue); font-weight:700; }
+.step { display:flex; align-items:center; gap:10px; background:var(--surface); padding:12px 16px; border-bottom:1px solid #f0f4ff; }
+.time { font-weight:700; color:var(--blue); min-width:54px; font-size:.86rem; flex-shrink:0; font-variant-numeric:tabular-nums; }
+.step-name { flex:1; font-size:.92rem; color:var(--text); font-weight:500; }
+.return-step { background:#e8f0fe !important; }
+.step-return { color:var(--blue); font-style:italic; }
 
-  /* ── Replace panel ── */
-  .replace-panel { background: #f8faff; border: 1.5px solid #c5d8ff; border-radius: 10px; padding: 8px 12px; margin: 2px 0; display: none; }
-  .replace-panel select { width: 100%; padding: 8px 10px; border: 1.5px solid #c5d8ff; border-radius: 6px; font-size: .88rem; color: #333; min-height: 40px; }
-  .btn-replace { padding: 6px 14px; border: 1.5px solid #1a73e8; color: #1a73e8; background: white; border-radius: 8px; cursor: pointer; font-size: .82rem; white-space: nowrap; min-height: 34px; }
-  .btn-replace:hover { background: #e8f0fe; }
+/* Travel gap */
+.travel-gap-edit { background:#f8faff; padding:5px 16px 5px 36px; font-size:.75rem; color:var(--muted); border-bottom:1px solid #f0f4ff; display:flex; align-items:center; gap:6px; flex-wrap:wrap; border-left:3px solid var(--border); }
+.travel-gap-edit input { width:44px; padding:3px 5px; border:1.5px solid var(--border); border-radius:6px; font-size:.76rem; text-align:center; color:var(--text); font-family:inherit; }
+.travel-gap-edit input:focus { border-color:var(--blue); outline:none; }
+.mode-sel { padding:3px 8px; border:1.5px solid var(--border); border-radius:8px; font-size:.78rem; cursor:pointer; background:white; color:var(--muted); font-family:inherit; }
+.mode-sel:focus { outline:none; border-color:var(--blue); }
+.travel-dist { font-size:.7rem; color:#aaa; }
 
-  /* ── Time summary ── */
-  .time-summary { display: flex; flex-wrap: wrap; gap: 10px; background: white; border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.1); font-size: .85rem; color: #666; border: 1.5px solid #c5d8ff; }
-  .time-summary span { display: flex; align-items: center; gap: 4px; }
-  .time-summary strong { color: #1a73e8; font-weight: bold; }
+/* In-itin step */
+.step.in-itin { flex-direction:column; align-items:stretch; gap:0; background:white; padding:12px 16px; border-left:3px solid var(--blue); transition:border-color .2s; }
+.step.in-itin:hover { border-left-color:var(--teal); }
+.step-row-top { display:flex; align-items:center; gap:8px; }
+.step-row-bottom { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:8px; padding-top:8px; border-top:1px solid #f0f4ff; }
+.step-controls { display:flex; gap:4px; flex-shrink:0; }
+.btn-move { width:32px; height:32px; border:1.5px solid var(--border); background:white; border-radius:8px; cursor:pointer; font-size:.82rem; color:var(--blue); transition:all .15s; }
+.btn-move:hover { background:var(--blue-lt); border-color:var(--blue); }
+.btn-move:disabled { opacity:.3; cursor:default; }
+.btn-remove-step { width:32px; height:32px; border:1.5px solid #eee; background:white; border-radius:8px; cursor:pointer; font-size:.82rem; color:#bbb; margin-left:auto; flex-shrink:0; transition:all .15s; }
+.btn-remove-step:hover { background:#fff0f0; border-color:#e57373; color:#e57373; }
+.custom-step-name { color:#888; font-style:italic; }
+.dur-wrap { display:flex; align-items:center; gap:4px; font-size:.8rem; color:var(--muted); white-space:nowrap; }
+.dur-wrap input { width:54px; padding:5px 6px; border:1.5px solid var(--border); border-radius:6px; font-size:.82rem; text-align:center; color:var(--text); font-family:inherit; }
+.dur-wrap input:focus { border-color:var(--blue); outline:none; }
+.budget-wrap { display:flex; align-items:center; gap:3px; font-size:.8rem; color:var(--muted); white-space:nowrap; }
+.budget-wrap input { width:68px; padding:5px 6px; border:1.5px solid var(--border); border-radius:6px; font-size:.82rem; text-align:right; color:var(--text); font-family:inherit; }
+.budget-wrap input:focus { border-color:var(--blue); outline:none; }
+.replace-panel { background:#f8faff; border:1.5px solid var(--border); border-radius:10px; padding:8px 12px; margin:2px 0; display:none; }
+.replace-panel select { width:100%; padding:8px 10px; border:1.5px solid var(--border); border-radius:8px; font-size:.88rem; color:var(--text); font-family:inherit; }
+.btn-replace { padding:5px 14px; border:1.5px solid var(--blue); color:var(--blue); background:white; border-radius:20px; cursor:pointer; font-size:.8rem; white-space:nowrap; transition:all .15s; font-family:inherit; }
+.btn-replace:hover { background:var(--blue-lt); }
 
-  /* ── Toolbar & filters ── */
-  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 18px; }
-  .filters { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
-  .filter-btn { padding: 8px 16px; border: 2px solid #1a73e8; border-radius: 20px; background: white; color: #1a73e8; cursor: pointer; font-size: .85rem; transition: all .15s; white-space: nowrap; min-height: 40px; }
-  .filter-btn.active, .filter-btn:hover { background: #1a73e8; color: white; }
-  .btn-add { padding: 10px 20px; background: #1a73e8; color: white; border: none; border-radius: 20px; cursor: pointer; font-size: .9rem; font-weight: bold; box-shadow: 0 2px 6px rgba(26,115,232,.3); transition: transform .15s; white-space: nowrap; min-height: 44px; }
-  .btn-add:hover { transform: translateY(-2px); }
-  .btn-reset { padding: 10px 14px; background: white; color: #888; border: 1.5px solid #ddd; border-radius: 20px; cursor: pointer; font-size: .85rem; min-height: 40px; }
-  .btn-reset:hover { color: #1a73e8; border-color: #1a73e8; }
+/* ── Toolbar ── */
+.toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:18px; }
+.filters { display:flex; flex-wrap:wrap; gap:8px; flex:1; }
+.filter-btn { padding:8px 16px; border:1.5px solid var(--border); border-radius:20px; background:white; color:var(--muted); cursor:pointer; font-size:.84rem; font-weight:500; transition:all .2s; white-space:nowrap; min-height:40px; font-family:inherit; box-shadow:var(--s1); }
+.filter-btn.active,.filter-btn:hover { background:var(--blue); color:white; border-color:var(--blue); box-shadow:0 2px 8px rgba(26,115,232,.3); }
+.btn-add { padding:10px 22px; background:var(--blue); color:white; border:none; border-radius:20px; cursor:pointer; font-size:.9rem; font-weight:700; box-shadow:0 2px 10px rgba(26,115,232,.35); transition:all .2s; white-space:nowrap; min-height:44px; font-family:inherit; }
+.btn-add:hover { background:#1557b0; transform:translateY(-1px); box-shadow:0 4px 16px rgba(26,115,232,.4); }
+.btn-reset { padding:10px 16px; background:white; color:var(--muted); border:1.5px solid var(--border); border-radius:20px; cursor:pointer; font-size:.85rem; min-height:40px; font-family:inherit; box-shadow:var(--s1); transition:all .2s; }
+.btn-reset:hover { color:var(--blue); border-color:var(--blue); }
 
-  /* ── Cards ── */
-  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-  .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.1); transition: transform .2s, box-shadow .2s; }
-  .card:hover { transform: translateY(-4px); box-shadow: 0 6px 20px rgba(0,0,0,.15); }
-  .card-header { padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; color: white; }
-  .category-tag { font-size: .78rem; background: rgba(255,255,255,.25); padding: 2px 8px; border-radius: 10px; }
-  .rating-tag { font-size: .95rem; font-weight: bold; }
-  .card-body { padding: 14px; }
-  .card-body h3 { font-size: 1.05rem; margin-bottom: 10px; color: #222; }
-  .info-row { display: flex; gap: 8px; margin-bottom: 5px; font-size: .85rem; color: #555; }
-  .icon { width: 20px; text-align: center; flex-shrink: 0; }
-  .tips-box { margin-top: 10px; font-size: .83rem; color: #1a73e8; background: #e8f0fe; padding: 8px 10px; border-radius: 8px; line-height: 1.6; }
-  .card-actions { display: flex; gap: 8px; padding: 10px 14px; border-top: 1px solid #f0f0f0; }
-  .btn-edit { flex: 1; padding: 8px 6px; border: 1.5px solid #1a73e8; color: #1a73e8; background: white; border-radius: 8px; cursor: pointer; font-size: .85rem; transition: all .12s; min-height: 40px; }
-  .btn-edit:hover { background: #e8f0fe; }
-  .btn-del { flex: 1; padding: 8px 6px; border: 1.5px solid #ddd; color: #999; background: white; border-radius: 8px; cursor: pointer; font-size: .85rem; min-height: 40px; }
-  .btn-del:hover { border-color: #e57373; color: #e57373; background: #fff0f0; }
+/* ── Cards ── */
+.cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
+.card { background:white; border-radius:var(--r); overflow:hidden; box-shadow:var(--s1); transition:all .25s; }
+.card:hover { transform:translateY(-5px); box-shadow:var(--s3); }
+.card-header { padding:18px 16px 14px; color:white; position:relative; overflow:hidden; }
+.card-header::after { content:""; position:absolute; right:-16px; bottom:-16px; width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,.1); pointer-events:none; }
+.card-header-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+.category-tag { font-size:.75rem; background:rgba(255,255,255,.22); border:1px solid rgba(255,255,255,.3); padding:3px 10px; border-radius:20px; font-weight:500; }
+.rating-tag { font-size:.95rem; font-weight:700; }
+.card-title { font-size:1.1rem; font-weight:700; text-shadow:0 1px 4px rgba(0,0,0,.15); }
+.card-body { padding:14px 16px 8px; }
+.info-row { display:flex; gap:8px; margin-bottom:6px; font-size:.83rem; color:var(--muted); align-items:flex-start; }
+.icon { width:20px; text-align:center; flex-shrink:0; }
+.tips-box { margin-top:10px; font-size:.81rem; color:var(--blue); background:var(--blue-lt); padding:8px 12px; border-radius:10px; line-height:1.6; border-left:3px solid var(--blue); }
+.card-actions { display:flex; gap:8px; padding:10px 16px 14px; }
+.btn-add-itin { flex:2; padding:9px 6px; border:1.5px solid var(--blue); color:var(--blue); background:white; border-radius:10px; cursor:pointer; font-size:.84rem; font-weight:600; transition:all .15s; min-height:40px; font-family:inherit; }
+.btn-add-itin:hover { background:var(--blue-lt); }
+.btn-add-itin:disabled { opacity:.4; cursor:default; }
+.btn-edit { flex:1; padding:9px 6px; border:1.5px solid var(--border); color:var(--muted); background:white; border-radius:10px; cursor:pointer; font-size:.84rem; min-height:40px; font-family:inherit; transition:all .15s; }
+.btn-edit:hover { color:var(--blue); border-color:var(--blue); background:var(--blue-lt); }
+.btn-del { flex:1; padding:9px 6px; border:1.5px solid var(--border); color:var(--muted); background:white; border-radius:10px; cursor:pointer; font-size:.84rem; min-height:40px; font-family:inherit; transition:all .15s; }
+.btn-del:hover { border-color:#e57373; color:#e57373; background:#fff0f0; }
 
-  /* ── Budget table ── */
-  table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
-  td { padding: 12px 20px; border-bottom: 1px solid #f0f0f0; font-size: .93rem; }
-  tr:last-child td { border: none; }
-  #budget-table td:last-child { text-align: right; }
-  #budget-table .total-row td { font-weight: bold; background: #e8f0fe; color: #1a73e8; }
-  #budget-table .transport-row td:last-child input { width: 70px; padding: 5px 8px; border: 1.5px solid #c5d8ff; border-radius: 6px; font-size: .88rem; text-align: right; color: #333; }
-  #budget-table .transport-row td:last-child input:focus { border-color: #1a73e8; outline: none; }
+/* ── Budget ── */
+.budget-card { background:white; border-radius:var(--r); overflow:hidden; box-shadow:var(--s1); }
+table { width:100%; border-collapse:collapse; }
+td { padding:13px 20px; border-bottom:1px solid #f4f6ff; font-size:.92rem; }
+tr:last-child td { border:none; }
+#budget-table td:last-child { text-align:right; font-variant-numeric:tabular-nums; }
+#budget-table .total-row td { font-weight:700; background:linear-gradient(135deg,var(--blue-lt),#f0f5ff); color:var(--blue); font-size:1rem; }
+#budget-table .transport-row td:last-child input { width:74px; padding:5px 8px; border:1.5px solid var(--border); border-radius:8px; font-size:.9rem; text-align:right; color:var(--text); font-family:inherit; }
+#budget-table .transport-row td:last-child input:focus { border-color:var(--blue); outline:none; }
 
-  /* ── Modal（桌面：置中；手機：底部彈出） ── */
-  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; align-items: center; justify-content: center; }
-  .overlay.open { display: flex; }
-  .modal { background: white; border-radius: 12px; padding: 0; width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,.2); }
-  .modal-head { background: linear-gradient(135deg, #1a73e8, #0d47a1); padding: 18px 24px; border-radius: 12px 12px 0 0; display: flex; align-items: center; gap: 10px; }
-  .modal h3 { margin: 0; font-size: 1.1rem; color: white; }
-  .modal-body { padding: 20px 20px 32px; }
-  .form-group { margin-bottom: 14px; }
-  label { display: block; font-size: .85rem; color: #555; margin-bottom: 4px; font-weight: 500; }
-  input, select, textarea { width: 100%; padding: 11px 12px; border: 1.5px solid #c5d8ff; border-radius: 8px; font-size: .95rem; font-family: inherit; color: #333; }
-  input:focus, select:focus, textarea:focus { outline: none; border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26,115,232,.15); }
-  textarea { resize: vertical; min-height: 70px; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-  .btn-save { flex: 1; padding: 13px; background: #1a73e8; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: bold; min-height: 48px; }
-  .btn-save:hover { background: #1557b0; }
-  .btn-cancel { padding: 13px 18px; background: white; color: #888; border: 1.5px solid #ddd; border-radius: 10px; cursor: pointer; font-size: 1rem; min-height: 48px; }
-  .btn-cancel:hover { border-color: #1a73e8; color: #1a73e8; }
+/* ── Modal ── */
+.overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.6); z-index:100; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+.overlay.open { display:flex; }
+.modal { background:white; border-radius:var(--r); width:480px; max-width:95vw; max-height:90vh; overflow-y:auto; box-shadow:0 16px 64px rgba(0,0,0,.25); animation:slideUp .22s ease; }
+@keyframes slideUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+.modal-head { background:linear-gradient(135deg,var(--blue),var(--blue-dk)); padding:20px 24px; border-radius:var(--r) var(--r) 0 0; }
+.modal h3 { margin:0; font-size:1.1rem; color:white; font-weight:700; }
+.modal-body { padding:22px 24px 28px; }
+.form-group { margin-bottom:14px; }
+label { display:block; font-size:.84rem; color:var(--muted); margin-bottom:5px; font-weight:600; }
+input,select,textarea { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:10px; font-size:.95rem; font-family:inherit; color:var(--text); background:#fafcff; transition:border-color .2s,box-shadow .2s; }
+input:focus,select:focus,textarea:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(26,115,232,.12); background:white; }
+textarea { resize:vertical; min-height:70px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.modal-actions { display:flex; gap:10px; margin-top:22px; }
+.btn-save { flex:1; padding:13px; background:var(--blue); color:white; border:none; border-radius:12px; cursor:pointer; font-size:1rem; font-weight:700; font-family:inherit; box-shadow:0 2px 10px rgba(26,115,232,.35); transition:all .2s; }
+.btn-save:hover { background:#1557b0; }
+.btn-cancel { padding:13px 20px; background:#f8faff; color:var(--muted); border:1.5px solid var(--border); border-radius:12px; cursor:pointer; font-size:1rem; font-family:inherit; transition:all .2s; }
+.btn-cancel:hover { border-color:var(--blue); color:var(--blue); }
 
-  /* ── Footer ── */
-  footer { text-align: center; padding: 24px; color: #999; font-size: .8rem; margin-top: 20px; }
-  .empty-msg { text-align: center; color: #aaa; padding: 40px; grid-column: 1/-1; }
+/* ── Footer ── */
+footer { text-align:center; padding:28px; color:var(--muted); font-size:.78rem; }
+.empty-msg { text-align:center; color:#ccc; padding:48px; grid-column:1/-1; }
 
-  /* ── Mobile ── */
-  @media (max-width: 600px) {
-    header { padding: 24px 16px; }
-    header h1 { font-size: 1.4rem; }
-    section { margin: 14px auto; padding: 0 12px; }
-
-    /* Filter scroll */
-    .filters { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
-    .filter-btn { flex-shrink: 0; }
-
-    /* Toolbar stack */
-    .toolbar { flex-direction: column; align-items: stretch; }
-    .btn-add, .btn-reset { width: 100%; text-align: center; }
-
-    /* Itin toolbar stack */
-    .itin-toolbar { flex-direction: column; align-items: stretch; }
-    .itin-toolbar label { justify-content: space-between; }
-    .btn-auto, .btn-custom { width: 100%; text-align: center; padding: 12px; }
-
-    /* Cards single column */
-    .cards { grid-template-columns: 1fr; gap: 12px; }
-
-    /* Budget table smaller padding */
-    td { padding: 10px 14px; font-size: .88rem; }
-
-    /* Form single column */
-    .form-row { grid-template-columns: 1fr; gap: 0; }
-
-    /* Time summary wrap tighter */
-    .time-summary { gap: 8px; font-size: .82rem; padding: 10px 14px; }
-
-    /* Step row adjustments */
-    .step-row-bottom { gap: 6px; }
-    .btn-move { width: 38px; height: 38px; font-size: .9rem; }
-    .btn-remove-step { width: 38px; height: 38px; font-size: .9rem; }
-
-    /* Modal：手機底部彈出 */
-    .overlay { align-items: flex-end; }
-    .modal { border-radius: 16px 16px 0 0; width: 100%; max-width: 100%; max-height: 88vh; }
-    .modal-head { border-radius: 16px 16px 0 0; }
-    .modal-body { padding: 18px 16px 36px; }
-  }
+/* ── Mobile ── */
+@media (max-width:600px) {
+  header h1 { font-size:1.45rem; }
+  header { padding:26px 16px 0; }
+  .tab-btn { font-size:.82rem; padding:12px 4px; gap:4px; }
+  .wrap { padding:16px 12px 28px; }
+  .filters { flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:4px; }
+  .filter-btn { flex-shrink:0; }
+  .toolbar { flex-direction:column; align-items:stretch; }
+  .btn-add,.btn-reset { width:100%; text-align:center; }
+  .itin-toolbar { flex-direction:column; align-items:stretch; }
+  .itin-toolbar label { justify-content:space-between; }
+  .btn-auto,.btn-custom { width:100%; text-align:center; }
+  .cards { grid-template-columns:1fr; }
+  .form-row { grid-template-columns:1fr; }
+  td { padding:10px 14px; font-size:.88rem; }
+  .btn-move,.btn-remove-step { width:36px; height:36px; }
+  .overlay { align-items:flex-end; }
+  .modal { border-radius:var(--r) var(--r) 0 0; width:100%; max-width:100%; max-height:88vh; }
+  .modal-head { border-radius:var(--r) var(--r) 0 0; }
+  .modal-body { padding:18px 16px 36px; }
+}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>🌊 淡水一日遊計畫</h1>
-  <p id="subtitle">載入中…</p>
+  <div class="header-inner">
+    <h1>🌊 淡水一日遊計畫</h1>
+    <p class="subtitle" id="subtitle">載入中…</p>
+    <div class="header-stats">
+      <span class="stat-chip">📍 淡水區</span>
+      <span class="stat-chip">🗓 一日遊</span>
+      <span class="stat-chip">💾 自動儲存</span>
+    </div>
+  </div>
+  <svg class="header-wave" viewBox="0 0 1440 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,28 C240,56 480,0 720,28 C960,56 1200,0 1440,28 L1440,56 L0,56 Z" fill="#f0f5ff"/>
+  </svg>
 </header>
 
-<section>
-  <h2>建議行程 <span id="itinerary-note" style="font-size:0.78rem;font-weight:normal;opacity:.7;margin-left:4px;"></span></h2>
-  <div class="itin-toolbar">
-    <label>出發時間 <input type="time" id="start-time" value="09:00" onchange="renderItinerary(load())"></label>
-    <button class="btn-auto" onclick="autoArrange()">自動排列</button>
-    <button class="btn-custom" onclick="openCustomStep()">+ 新增自訂項目</button>
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="itinerary" onclick="switchTab('itinerary')">🗓 行程</button>
+  <button class="tab-btn" data-tab="spots" onclick="switchTab('spots')">📍 景點</button>
+  <button class="tab-btn" data-tab="budget" onclick="switchTab('budget')">💰 預算</button>
+</nav>
+
+<!-- 行程 -->
+<div class="tab-content active" id="tab-itinerary">
+  <div class="wrap">
+    <div class="section-title">建議行程 <span id="itinerary-note" style="font-size:.78rem;font-weight:400;color:#888;margin-left:4px;"></span></div>
+    <div class="itin-toolbar">
+      <label>⏰ 出發時間 <input type="time" id="start-time" value="09:00" onchange="renderItinerary(load())"></label>
+      <button class="btn-auto" onclick="autoArrange()">✨ 自動排列</button>
+      <button class="btn-custom" onclick="openCustomStep()">＋ 新增自訂</button>
+    </div>
+    <div class="itinerary" id="itinerary"></div>
   </div>
-  <div class="itinerary" id="itinerary"></div>
-</section>
+</div>
 
-<section>
-  <h2>景點管理</h2>
-  <div class="toolbar">
-    <div class="filters" id="filters"></div>
-    <button class="btn-reset" onclick="resetData()">還原預設</button>
-    <button class="btn-add" onclick="openModal()">+ 新增景點</button>
+<!-- 景點 -->
+<div class="tab-content" id="tab-spots">
+  <div class="wrap">
+    <div class="toolbar">
+      <div class="filters" id="filters"></div>
+      <button class="btn-reset" onclick="resetData()">🔄 還原預設</button>
+      <button class="btn-add" onclick="openModal()">＋ 新增景點</button>
+    </div>
+    <div class="cards" id="cards"></div>
   </div>
-  <div class="cards" id="cards"></div>
-</section>
+</div>
 
-<section>
-  <h2>預算估算</h2>
-  <table id="budget-table"><tbody id="budget-body"></tbody></table>
-</section>
+<!-- 預算 -->
+<div class="tab-content" id="tab-budget">
+  <div class="wrap">
+    <div class="section-title">預算估算</div>
+    <div class="budget-card">
+      <table id="budget-table"><tbody id="budget-body"></tbody></table>
+    </div>
+  </div>
+</div>
 
-<footer>
-  <p>資料儲存於瀏覽器本機（localStorage），清除瀏覽器資料前永久保留</p>
-</footer>
+<footer><p>資料儲存於瀏覽器本機（localStorage），清除瀏覽器資料前永久保留</p></footer>
 
 <!-- 新增 / 編輯 Modal -->
 <div class="overlay" id="overlay" onclick="closeOnBg(event)">
   <div class="modal">
-    <div class="modal-head">
-      <h3 id="modal-title">新增景點</h3>
-    </div>
+    <div class="modal-head"><h3 id="modal-title">新增景點</h3></div>
     <div class="modal-body">
-      <div class="form-group">
-        <label>景點名稱 *</label>
-        <input id="f-name" type="text" placeholder="例：淡水老街">
+      <div class="form-group"><label>景點名稱 *</label><input id="f-name" type="text" placeholder="例：淡水老街"></div>
+      <div class="form-row">
+        <div class="form-group"><label>類別 *</label>
+          <select id="f-category"><option>景點</option><option>古蹟</option><option>美食</option><option>咖啡廳</option><option>廟宇</option><option>其他</option></select>
+        </div>
+        <div class="form-group"><label>評分（1.0–5.0）*</label><input id="f-rating" type="number" min="1" max="5" step="0.1" placeholder="4.2"></div>
       </div>
       <div class="form-row">
-        <div class="form-group">
-          <label>類別 *</label>
-          <select id="f-category">
-            <option>景點</option>
-            <option>古蹟</option>
-            <option>美食</option>
-            <option>咖啡廳</option>
-            <option>廟宇</option>
-            <option>其他</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>評分（1.0–5.0）*</label>
-          <input id="f-rating" type="number" min="1" max="5" step="0.1" placeholder="4.2">
-        </div>
+        <div class="form-group"><label>建議停留時間</label><input id="f-duration" type="text" placeholder="例：1–2 小時"></div>
+        <div class="form-group"><label>費用</label><input id="f-price" type="text" placeholder="例：免費 / NT$80"></div>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>建議停留時間</label>
-          <input id="f-duration" type="text" placeholder="例：1–2 小時">
-        </div>
-        <div class="form-group">
-          <label>費用</label>
-          <input id="f-price" type="text" placeholder="例：免費 / NT$80">
-        </div>
-      </div>
-      <div class="form-group">
-        <label>交通方式</label>
-        <input id="f-transport" type="text" placeholder="例：淡水站步行 5 分鐘">
-      </div>
-      <div class="form-group">
-        <label>小提示</label>
-        <textarea id="f-tips" placeholder="推薦必吃、最佳時段…"></textarea>
-      </div>
+      <div class="form-group"><label>交通方式</label><input id="f-transport" type="text" placeholder="例：淡水站步行 5 分鐘"></div>
+      <div class="form-group"><label>小提示</label><textarea id="f-tips" placeholder="推薦必吃、最佳時段…"></textarea></div>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="closeModal()">取消</button>
         <button class="btn-save" onclick="saveAttraction()">儲存</button>
@@ -275,26 +280,15 @@
   </div>
 </div>
 
-<!-- 新增自訂行程項目 Modal -->
+<!-- 自訂行程 Modal -->
 <div class="overlay" id="overlay-custom" onclick="if(event.target===this)closeCustomStep()">
   <div class="modal">
-    <div class="modal-head">
-      <h3>新增自訂行程項目</h3>
-    </div>
+    <div class="modal-head"><h3>新增自訂行程項目</h3></div>
     <div class="modal-body">
-      <div class="form-group">
-        <label>項目名稱 *（例：午休、移動至漁人碼頭）</label>
-        <input id="cs-name" type="text" placeholder="例：搭公車前往紅毛城">
-      </div>
+      <div class="form-group"><label>項目名稱 *（例：午休、移動至漁人碼頭）</label><input id="cs-name" type="text" placeholder="例：搭公車前往紅毛城"></div>
       <div class="form-row">
-        <div class="form-group">
-          <label>所需時間</label>
-          <input id="cs-duration" type="text" placeholder="例：30 分鐘">
-        </div>
-        <div class="form-group">
-          <label>移動時間（分鐘）</label>
-          <input id="cs-travel" type="number" value="15" min="0" max="120">
-        </div>
+        <div class="form-group"><label>所需時間</label><input id="cs-duration" type="text" placeholder="例：30 分鐘"></div>
+        <div class="form-group"><label>移動時間（分鐘）</label><input id="cs-travel" type="number" value="15" min="0" max="120"></div>
       </div>
       <div class="modal-actions">
         <button class="btn-cancel" onclick="closeCustomStep()">取消</button>
@@ -306,436 +300,209 @@
 
 <script>
 const CATEGORY_COLOR = {
-  "景點": "#2196F3", "古蹟": "#795548", "美食": "#FF5722",
-  "甜點": "#E91E63", "咖啡廳": "#8D6E63", "廟宇": "#9C27B0", "其他": "#607D8B"
+  "景點":"#2196F3","古蹟":"#795548","美食":"#FF5722",
+  "甜點":"#E91E63","咖啡廳":"#8D6E63","廟宇":"#9C27B0","其他":"#607D8B"
+};
+const CATEGORY_EMOJI = {
+  "景點":"🏞️","古蹟":"🏯","美食":"🍜","甜點":"🧁","咖啡廳":"☕","廟宇":"⛩️","其他":"📍"
 };
 
 const DEFAULTS = [
-  { id: 1,  name: "淡水日落碼頭",       category: "景點",  rating: 4.5, duration: "30–60 分鐘",  price: "免費",                              tips: "台灣十大夕陽之一，傍晚 17:30 後最美",        transport: "淡水捷運站步行 5 分鐘" },
-  { id: 2,  name: "紅毛城",             category: "古蹟",  rating: 4.4, duration: "1–1.5 小時",  price: "全票 NT$80，優待票 NT$40",           tips: "荷蘭時期建造，台灣保存最完整的西式古堡",    transport: "淡水站搭紅 26 公車，紅毛城站下車" },
-  { id: 3,  name: "漁人碼頭",           category: "景點",  rating: 4.3, duration: "1–1.5 小時",  price: "免費（餐廳人均 NT$200–400）",        tips: "黃昏時分景色最美，可看夕陽與情人橋",        transport: "淡水站搭紅 26 公車約 15 分鐘" },
-  { id: 4,  name: "真理大學校園",       category: "景點",  rating: 4.3, duration: "30–45 分鐘",  price: "免費",                              tips: "歐式建築，牛津學堂為台灣最早西式學校",        transport: "紅毛城步行 5 分鐘" },
-  { id: 5,  name: "淡水老街",           category: "景點",  rating: 4.2, duration: "1.5–2 小時",  price: "免費入場（小吃 NT$30–80）",          tips: "必吃：阿給、魚酥、鐵蛋、淡水魚丸",          transport: "淡水捷運站步行 3 分鐘" },
-  { id: 6,  name: "淡水天元宮",         category: "廟宇",  rating: 4.2, duration: "45 分鐘–1 小時", price: "免費",                           tips: "三月份吉野櫻盛開，是賞櫻名所",              transport: "淡水站搭指南客運 862，天元宮站下車" },
-  { id: 7,  name: "得忌利士洋行",       category: "咖啡廳", rating: 4.2, duration: "1–1.5 小時",  price: "飲品 NT$150–250，輕食 NT$200–350",  tips: "百年洋行改建，河景絕佳，適合下午茶",        transport: "淡水老街旁，中正路旁" },
-  { id: 8,  name: "滬尾砲台",           category: "古蹟",  rating: 4.1, duration: "45 分鐘–1 小時", price: "免費",                           tips: "劉銘傳督建，可俯瞰淡水河口全景",            transport: "紅毛城步行約 10 分鐘" },
-  { id: 9,  name: "阿給原創老店",       category: "美食",  rating: 4.1, duration: "20–30 分鐘",  price: "阿給 NT$35，魚丸湯 NT$30",           tips: "在地 60 年老店，老街必吃第一名",            transport: "老街巷內，中正路 209 巷" },
-  { id: 10, name: "丹頂豆",             category: "甜點",  rating: 4.9, duration: "20–30 分鐘",  price: "NT$40–100",   hours: "11:00–18:00",  tips: "社群最高評分 4.9★，必吃甜點",              transport: "淡水老街附近" },
-  { id: 11, name: "4F小飯館",           category: "美食",  rating: 4.7, duration: "1–1.5 小時",  price: "人均 NT$800–1,600", hours: "11:30–21:00", tips: "高評分餐廳，建議事先預訂",                transport: "淡水區" },
-  { id: 12, name: "黑殿飯店",           category: "美食",  rating: 4.6, duration: "45–60 分鐘",  price: "人均 NT$150–250", hours: "11:00–20:30", tips: "脊村排骨飯，社群第1名，多平台高讚推薦",    transport: "淡水區" },
-  { id: 13, name: "讓靜甜點工作室",     category: "甜點",  rating: 4.6, duration: "45–60 分鐘",  price: "NT$60–150",   hours: "13:00–19:00",  tips: "精緻手作甜點，IG 7.4K讚，社群第7名",        transport: "淡水區" },
-  { id: 14, name: "貳樓餐廳",           category: "咖啡廳", rating: 4.6, duration: "1–1.5 小時", price: "人均 NT$200–400", hours: "10:00–21:00", tips: "景觀河景餐廳，適合下午茶與晚餐",           transport: "淡水區" },
-  { id: 15, name: "緣味古早味現烤蛋糕", category: "甜點",  rating: 4.5, duration: "20–30 分鐘",  price: "NT$110–150",  hours: "11:00–20:30",  tips: "韓國人瘋買，IG 180K讚，社群第2名",          transport: "淡水老街" },
-  { id: 16, name: "文森食堂",           category: "咖啡廳", rating: 4.5, duration: "1 小時",     price: "人均 NT$200–350", hours: "11:00–20:00", tips: "景觀咖啡廳，河岸美景",                    transport: "淡水區" },
-  { id: 17, name: "天天咬吐司",         category: "美食",  rating: 4.5, duration: "20–30 分鐘",  price: "NT$55–95",    hours: "06:15–13:30",  tips: "早餐必吃，IG 45K讚，社群第4名",             transport: "淡水英專路附近" },
-  { id: 18, name: "阿忠花生捲冰淇淋",   category: "甜點",  rating: 4.3, duration: "15–20 分鐘",  price: "NT$60–80",                          tips: "排隊必吃，IG 185K讚，老街名物",             transport: "淡水老街" },
-  { id: 19, name: "朝日夫婦冰品",       category: "甜點",  rating: 4.3, duration: "20–30 分鐘",  price: "NT$80–120",                         tips: "宵夜首選，3天行程安排兩次",                 transport: "淡水區" },
-  { id: 20, name: "麻吉奶奶餅奶麻糬",   category: "美食",  rating: 4.2, duration: "15–20 分鐘",  price: "NT$30–60",                          tips: "老街經典，多平台推薦",                      transport: "淡水老街" },
-  { id: 21, name: "半坪屋手工糯米腸",   category: "美食",  rating: 4.2, duration: "15–20 分鐘",  price: "NT$50–80",                          tips: "60年老店，多平台推薦",                      transport: "淡水老街" },
+  { id:1,  name:"淡水日落碼頭",       category:"景點",  rating:4.5, duration:"30–60 分鐘",    price:"免費",                              tips:"台灣十大夕陽之一，傍晚 17:30 後最美",       transport:"淡水捷運站步行 5 分鐘" },
+  { id:2,  name:"紅毛城",             category:"古蹟",  rating:4.4, duration:"1–1.5 小時",    price:"全票 NT$80，優待票 NT$40",           tips:"荷蘭時期建造，台灣保存最完整的西式古堡",   transport:"淡水站搭紅 26 公車，紅毛城站下車" },
+  { id:3,  name:"漁人碼頭",           category:"景點",  rating:4.3, duration:"1–1.5 小時",    price:"免費（餐廳人均 NT$200–400）",        tips:"黃昏時分景色最美，可看夕陽與情人橋",       transport:"淡水站搭紅 26 公車約 15 分鐘" },
+  { id:4,  name:"真理大學校園",       category:"景點",  rating:4.3, duration:"30–45 分鐘",    price:"免費",                              tips:"歐式建築，牛津學堂為台灣最早西式學校",     transport:"紅毛城步行 5 分鐘" },
+  { id:5,  name:"淡水老街",           category:"景點",  rating:4.2, duration:"1.5–2 小時",    price:"免費入場（小吃 NT$30–80）",          tips:"必吃：阿給、魚酥、鐵蛋、淡水魚丸",         transport:"淡水捷運站步行 3 分鐘" },
+  { id:6,  name:"淡水天元宮",         category:"廟宇",  rating:4.2, duration:"45 分鐘–1 小時",price:"免費",                              tips:"三月份吉野櫻盛開，是賞櫻名所",             transport:"淡水站搭指南客運 862，天元宮站下車" },
+  { id:7,  name:"得忌利士洋行",       category:"咖啡廳",rating:4.2, duration:"1–1.5 小時",    price:"飲品 NT$150–250，輕食 NT$200–350",  tips:"百年洋行改建，河景絕佳，適合下午茶",       transport:"淡水老街旁，中正路旁" },
+  { id:8,  name:"滬尾砲台",           category:"古蹟",  rating:4.1, duration:"45 分鐘–1 小時",price:"免費",                              tips:"劉銘傳督建，可俯瞰淡水河口全景",           transport:"紅毛城步行約 10 分鐘" },
+  { id:9,  name:"阿給原創老店",       category:"美食",  rating:4.1, duration:"20–30 分鐘",    price:"阿給 NT$35，魚丸湯 NT$30",           tips:"在地 60 年老店，老街必吃第一名",           transport:"老街巷內，中正路 209 巷" },
+  { id:10, name:"丹頂豆",             category:"甜點",  rating:4.9, duration:"20–30 分鐘",    price:"NT$40–100",   hours:"11:00–18:00",  tips:"社群最高評分 4.9★，必吃甜點",             transport:"淡水老街附近" },
+  { id:11, name:"4F小飯館",           category:"美食",  rating:4.7, duration:"1–1.5 小時",    price:"人均 NT$800–1,600",hours:"11:30–21:00",tips:"高評分餐廳，建議事先預訂",               transport:"淡水區" },
+  { id:12, name:"黑殿飯店",           category:"美食",  rating:4.6, duration:"45–60 分鐘",    price:"人均 NT$150–250",hours:"11:00–20:30", tips:"脊村排骨飯，社群第1名，多平台高讚推薦",   transport:"淡水區" },
+  { id:13, name:"讓靜甜點工作室",     category:"甜點",  rating:4.6, duration:"45–60 分鐘",    price:"NT$60–150",   hours:"13:00–19:00",  tips:"精緻手作甜點，IG 7.4K讚，社群第7名",     transport:"淡水區" },
+  { id:14, name:"貳樓餐廳",           category:"咖啡廳",rating:4.6, duration:"1–1.5 小時",    price:"人均 NT$200–400",hours:"10:00–21:00", tips:"景觀河景餐廳，適合下午茶與晚餐",           transport:"淡水區" },
+  { id:15, name:"緣味古早味現烤蛋糕", category:"甜點",  rating:4.5, duration:"20–30 分鐘",    price:"NT$110–150",  hours:"11:00–20:30",  tips:"韓國人瘋買，IG 180K讚，社群第2名",         transport:"淡水老街" },
+  { id:16, name:"文森食堂",           category:"咖啡廳",rating:4.5, duration:"1 小時",         price:"人均 NT$200–350",hours:"11:00–20:00", tips:"景觀咖啡廳，河岸美景",                     transport:"淡水區" },
+  { id:17, name:"天天咬吐司",         category:"美食",  rating:4.5, duration:"20–30 分鐘",    price:"NT$55–95",    hours:"06:15–13:30",  tips:"早餐必吃，IG 45K讚，社群第4名",           transport:"淡水英專路附近" },
+  { id:18, name:"阿忠花生捲冰淇淋",   category:"甜點",  rating:4.3, duration:"15–20 分鐘",    price:"NT$60–80",                          tips:"排隊必吃，IG 185K讚，老街名物",           transport:"淡水老街" },
+  { id:19, name:"朝日夫婦冰品",       category:"甜點",  rating:4.3, duration:"20–30 分鐘",    price:"NT$80–120",                         tips:"宵夜首選，3天行程安排兩次",               transport:"淡水區" },
+  { id:20, name:"麻吉奶奶餅奶麻糬",   category:"美食",  rating:4.2, duration:"15–20 分鐘",    price:"NT$30–60",                          tips:"老街經典，多平台推薦",                     transport:"淡水老街" },
+  { id:21, name:"半坪屋手工糯米腸",   category:"美食",  rating:4.2, duration:"15–20 分鐘",    price:"NT$50–80",                          tips:"60年老店，多平台推薦",                     transport:"淡水老街" },
 ];
 
-const KEY = "tamsui_attractions";
-const ITIN_KEY = "tamsui_itinerary";
-const VERSION_KEY = "tamsui_version";
-const DATA_VERSION = "5";
+const KEY="tamsui_attractions",ITIN_KEY="tamsui_itinerary",VERSION_KEY="tamsui_version",DATA_VERSION="5";
+const COORDS={1:[25.16899,121.43750],2:[25.17565,121.43162],3:[25.17963,121.42052],4:[25.17630,121.43020],5:[25.17002,121.43870],6:[25.19170,121.40462],7:[25.16981,121.43849],8:[25.17748,121.42800],9:[25.17062,121.43893],10:[25.17032,121.43882],11:[25.17048,121.43882],12:[25.17048,121.43928],13:[25.17118,121.43698],14:[25.16997,121.43848],15:[25.16999,121.43891],16:[25.17010,121.43882],17:[25.17140,121.43670],18:[25.17022,121.43893],19:[25.16989,121.43860],20:[25.17003,121.43882],21:[25.17010,121.43873]};
+const travelCache={};
 
-// 各景點近似座標 [lat, lng]（用於 OSRM 路線查詢）
-const COORDS = {
-  1:  [25.16899, 121.43750], // 淡水日落碼頭
-  2:  [25.17565, 121.43162], // 紅毛城
-  3:  [25.17963, 121.42052], // 漁人碼頭
-  4:  [25.17630, 121.43020], // 真理大學校園
-  5:  [25.17002, 121.43870], // 淡水老街
-  6:  [25.19170, 121.40462], // 淡水天元宮
-  7:  [25.16981, 121.43849], // 得忌利士洋行
-  8:  [25.17748, 121.42800], // 滬尾砲台
-  9:  [25.17062, 121.43893], // 阿給原創老店
-  10: [25.17032, 121.43882], // 丹頂豆
-  11: [25.17048, 121.43882], // 4F小飯館
-  12: [25.17048, 121.43928], // 黑殿飯店
-  13: [25.17118, 121.43698], // 讓靜甜點工作室
-  14: [25.16997, 121.43848], // 貳樓餐廳
-  15: [25.16999, 121.43891], // 緣味古早味現烤蛋糕
-  16: [25.17010, 121.43882], // 文森食堂
-  17: [25.17140, 121.43670], // 天天咬吐司
-  18: [25.17022, 121.43893], // 阿忠花生捲冰淇淋
-  19: [25.16989, 121.43860], // 朝日夫婦冰品
-  20: [25.17003, 121.43882], // 麻吉奶奶餅奶麻糬
-  21: [25.17010, 121.43873], // 半坪屋手工糯米腸
-};
-
-// 使用 OSRM 免費公開 API 查詢步行/開車時間
-const travelCache = {};
-
-async function fetchTravelTime(fromId, toId, mode) {
-  const key = `${mode}-${fromId}-${toId}`;
-  if (travelCache[key]) return travelCache[key];
-  const from = COORDS[fromId], to = COORDS[toId];
-  if (!from || !to) return null;
-  // OSRM 公開伺服器只有 driving 資料，但道路距離對步行同樣適用
-  const url = `https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=false`;
-  try {
-    const r = await fetch(url);
-    const d = await r.json();
-    if (d.code === "Ok" && d.routes && d.routes.length) {
-      const distM = d.routes[0].distance;
-      const km    = (distM / 1000).toFixed(1);
-      // 汽車用 OSRM duration；步行 80 m/min（≈4.8 km/h）
-      const mins  = mode === "car"
-        ? Math.max(1, Math.ceil(d.routes[0].duration / 60))
-        : Math.max(1, Math.ceil(distM / 80));
-      travelCache[key] = { mins, km };
-      return travelCache[key];
+async function fetchTravelTime(fromId,toId,mode){
+  const key=`${mode}-${fromId}-${toId}`;
+  if(travelCache[key])return travelCache[key];
+  const from=COORDS[fromId],to=COORDS[toId];
+  if(!from||!to)return null;
+  const url=`https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=false`;
+  try{
+    const r=await fetch(url);const d=await r.json();
+    if(d.code==="Ok"&&d.routes&&d.routes.length){
+      const distM=d.routes[0].distance,km=(distM/1000).toFixed(1);
+      const mins=mode==="car"?Math.max(1,Math.ceil(d.routes[0].duration/60)):Math.max(1,Math.ceil(distM/80));
+      travelCache[key]={mins,km};return travelCache[key];
     }
-  } catch (e) {}
-  // 備援：Haversine 直線距離 × 1.3 道路修正係數
-  const R = 6371000;
-  const dLat = (to[0]-from[0]) * Math.PI/180;
-  const dLng = (to[1]-from[1]) * Math.PI/180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(from[0]*Math.PI/180)*Math.cos(to[0]*Math.PI/180)*Math.sin(dLng/2)**2;
-  const distM = R * 2 * Math.asin(Math.sqrt(a)) * 1.3;
-  const km    = (distM / 1000).toFixed(1);
-  const mins  = mode === "car"
-    ? Math.max(1, Math.ceil(distM / 300))   // 300 m/min = 18 km/h
-    : Math.max(1, Math.ceil(distM / 80));   // 80 m/min 步行
-  const result = { mins, km };
-  travelCache[key] = result;
-  return result;
+  }catch(e){}
+  const R=6371000,dLat=(to[0]-from[0])*Math.PI/180,dLng=(to[1]-from[1])*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(from[0]*Math.PI/180)*Math.cos(to[0]*Math.PI/180)*Math.sin(dLng/2)**2;
+  const distM=R*2*Math.asin(Math.sqrt(a))*1.3,km=(distM/1000).toFixed(1);
+  const mins=mode==="car"?Math.max(1,Math.ceil(distM/300)):Math.max(1,Math.ceil(distM/80));
+  travelCache[key]={mins,km};return travelCache[key];
 }
 
-async function updateStepMode(iid, mode) {
-  const itin = loadItin() || [];
-  const idx = itin.findIndex(x => x.iid === iid);
-  if (idx < 0) return;
-  itin[idx].travelMode = mode;
-  saveItin(itin);
-  renderItinerary(load()); // 立即更新模式圖示（保留舊時間）
-  const cur = itin[idx], next = itin[idx + 1];
-  if (cur.attractionId && next && next.attractionId) {
-    const result = await fetchTravelTime(cur.attractionId, next.attractionId, mode);
-    if (result) {
-      const itin2 = loadItin() || [];
-      const item2 = itin2.find(x => x.iid === iid);
-      if (item2 && item2.travelMode === mode) {
-        item2.travelMin = result.mins;
-        item2.travelKm  = result.km;
-        saveItin(itin2);
-        renderItinerary(load());
-      }
+async function updateStepMode(iid,mode){
+  const itin=loadItin()||[];const idx=itin.findIndex(x=>x.iid===iid);if(idx<0)return;
+  itin[idx].travelMode=mode;saveItin(itin);renderItinerary(load());
+  const cur=itin[idx],next=itin[idx+1];
+  if(cur.attractionId&&next&&next.attractionId){
+    const result=await fetchTravelTime(cur.attractionId,next.attractionId,mode);
+    if(result){const itin2=loadItin()||[];const item2=itin2.find(x=>x.iid===iid);
+      if(item2&&item2.travelMode===mode){item2.travelMin=result.mins;item2.travelKm=result.km;saveItin(itin2);renderItinerary(load());}
     }
   }
 }
 
-let editingId = null;
-let activeFilter = "all";
+let editingId=null,activeFilter="all";
 
-if (localStorage.getItem(VERSION_KEY) !== DATA_VERSION) {
-  localStorage.removeItem(KEY);
-  localStorage.removeItem(ITIN_KEY);
-  localStorage.setItem(VERSION_KEY, DATA_VERSION);
+if(localStorage.getItem(VERSION_KEY)!==DATA_VERSION){
+  localStorage.removeItem(KEY);localStorage.removeItem(ITIN_KEY);localStorage.setItem(VERSION_KEY,DATA_VERSION);
 }
 
-// ── 行程 localStorage ─────────────────────────────────────────────────────────
-function loadItin() {
-  const raw = localStorage.getItem(ITIN_KEY);
-  return raw ? JSON.parse(raw) : null;
-}
-function saveItin(items) { localStorage.setItem(ITIN_KEY, JSON.stringify(items)); }
+function loadItin(){const raw=localStorage.getItem(ITIN_KEY);return raw?JSON.parse(raw):null;}
+function saveItin(items){localStorage.setItem(ITIN_KEY,JSON.stringify(items));}
+function getStartMin(){const el=document.getElementById("start-time");if(!el||!el.value)return 9*60;const[h,m]=el.value.split(":").map(Number);return h*60+m;}
 
-function getStartMin() {
-  const el = document.getElementById("start-time");
-  if (!el || !el.value) return 9 * 60;
-  const [h, m] = el.value.split(":").map(Number);
-  return h * 60 + m;
+function buildAutoItin(data){
+  const steps=optimizeItinerary(data);
+  return steps.map(s=>({iid:s.id||Date.now()+Math.random(),name:s.name,duration:s.duration||"1 小時",durMin:Math.round(parseDuration(s.duration||"1 小時")),travelMin:TRAVEL,travelMode:"walk",budget:parsePrice(s.price),custom:false,attractionId:s.id}));
 }
+function parsePrice(str){if(!str)return 0;if(/免費/.test(str))return 0;const m=str.match(/NT\$\s*(\d+)/);return m?parseInt(m[1]):0;}
+function updateStepBudget(iid,val){const v=Math.max(0,parseInt(val)||0);const itin=loadItin()||[];const item=itin.find(x=>x.iid===iid);if(item){item.budget=v;saveItin(itin);renderBudget();}}
 
-// 將 attractions 自動排列成 itinerary 格式
-function buildAutoItin(data) {
-  const steps = optimizeItinerary(data);
-  return steps.map(s => ({
-    iid: s.id || Date.now() + Math.random(),
-    name: s.name,
-    duration: s.duration || "1 小時",
-    durMin: Math.round(parseDuration(s.duration || "1 小時")),
-    travelMin: TRAVEL,
-    travelMode: "walk",
-    budget: parsePrice(s.price),
-    custom: false,
-    attractionId: s.id,
-  }));
+const TRANSPORT_KEY="tamsui_transport";
+function getTransport(){return parseInt(localStorage.getItem(TRANSPORT_KEY)||"75");}
+function setTransport(v){localStorage.setItem(TRANSPORT_KEY,Math.max(0,parseInt(v)||0));renderBudget();}
+
+function renderBudget(){
+  const itin=loadItin()||[];const tbody=document.getElementById("budget-body");if(!tbody)return;
+  let total=0;
+  let rows=itin.filter(x=>x.budget>0||!x.custom).map(item=>{const b=item.budget||0;total+=b;return`<tr><td>${item.name}</td><td>NT$${b>0?b.toLocaleString():"–"}</td></tr>`;}).join("");
+  const transport=getTransport();total+=transport;
+  rows+=`<tr class="transport-row"><td>交通費（捷運＋公車）</td><td>NT$<input type="number" value="${transport}" min="0" max="9999" onchange="setTransport(this.value)"></td></tr>`;
+  rows+=`<tr class="total-row"><td>合計</td><td>NT$${total.toLocaleString()}</td></tr>`;
+  tbody.innerHTML=rows;
 }
 
-// 從價格文字解析最低預估金額
-function parsePrice(str) {
-  if (!str) return 0;
-  if (/免費/.test(str)) return 0;
-  const m = str.match(/NT\$\s*(\d+)/);
-  return m ? parseInt(m[1]) : 0;
+function updateStepDur(iid,val){const v=Math.max(5,Math.min(720,parseInt(val)||60));const itin=loadItin()||[];const item=itin.find(x=>x.iid===iid);if(item){item.durMin=v;saveItin(itin);renderItinerary(load());}}
+function updateStepTravel(iid,val){const v=Math.max(0,Math.min(180,parseInt(val)||15));const itin=loadItin()||[];const item=itin.find(x=>x.iid===iid);if(item){item.travelMin=v;saveItin(itin);renderItinerary(load());}}
+function toggleReplace(iid){const panel=document.getElementById(`rp-${iid}`);if(panel)panel.style.display=panel.style.display==="block"?"none":"block";}
+function replaceStep(iid,aid){
+  if(!aid)return;const data=load();const a=data.find(x=>x.id===parseInt(aid));if(!a)return;
+  const itin=loadItin()||[];const item=itin.find(x=>x.iid===iid);
+  if(item){item.name=a.name;item.duration=a.duration||"1 小時";item.durMin=Math.round(parseDuration(a.duration||"1 小時"));item.attractionId=a.id;item.custom=false;saveItin(itin);renderItinerary(data);}
+}
+function autoArrange(){const data=load();if(!data.length)return;saveItin(buildAutoItin(data));renderItinerary(data);}
+function addToItin(attractionId){
+  const data=load();const a=data.find(x=>x.id===attractionId);if(!a)return;
+  const itin=loadItin()||buildAutoItin(data);
+  if(itin.find(x=>x.attractionId===attractionId)){alert(`「${a.name}」已在行程中`);return;}
+  itin.push({iid:Date.now(),name:a.name,duration:a.duration||"1 小時",durMin:Math.round(parseDuration(a.duration||"1 小時")),travelMin:TRAVEL,travelMode:"walk",budget:parsePrice(a.price),custom:false,attractionId});
+  saveItin(itin);renderItinerary(data);
+}
+function removeStep(iid){const itin=loadItin()||[];saveItin(itin.filter(x=>x.iid!==iid));renderItinerary(load());}
+function moveStep(iid,dir){const itin=loadItin()||[];const i=itin.findIndex(x=>x.iid===iid);if(i+dir<0||i+dir>=itin.length)return;[itin[i],itin[i+dir]]=[itin[i+dir],itin[i]];saveItin(itin);renderItinerary(load());}
+function openCustomStep(){document.getElementById("overlay-custom").classList.add("open");}
+function closeCustomStep(){document.getElementById("overlay-custom").classList.remove("open");}
+function saveCustomStep(){
+  const name=document.getElementById("cs-name").value.trim();if(!name){alert("請填寫項目名稱");return;}
+  const duration=document.getElementById("cs-duration").value.trim()||"30 分鐘";
+  const travelMin=parseInt(document.getElementById("cs-travel").value)||15;
+  const itin=loadItin()||buildAutoItin(load());
+  itin.push({iid:Date.now(),name,duration,travelMin,custom:true,attractionId:null});
+  saveItin(itin);closeCustomStep();renderItinerary(load());
 }
 
-function updateStepBudget(iid, val) {
-  const v = Math.max(0, parseInt(val) || 0);
-  const itin = loadItin() || [];
-  const item = itin.find(x => x.iid === iid);
-  if (item) { item.budget = v; saveItin(itin); renderBudget(); }
-}
-
-const TRANSPORT_KEY = "tamsui_transport";
-function getTransport() { return parseInt(localStorage.getItem(TRANSPORT_KEY) || "75"); }
-function setTransport(v) { localStorage.setItem(TRANSPORT_KEY, Math.max(0, parseInt(v) || 0)); renderBudget(); }
-
-function renderBudget() {
-  const itin = loadItin() || [];
-  const tbody = document.getElementById("budget-body");
-  if (!tbody) return;
-  const items = itin.filter(x => x.budget > 0 || !x.custom);
-  let total = 0;
-  let rows = items.map(item => {
-    const b = item.budget || 0;
-    total += b;
-    return `<tr>
-      <td>${item.name}</td>
-      <td>NT$${b > 0 ? b.toLocaleString() : "–"}</td>
-    </tr>`;
-  }).join("");
-  const transport = getTransport();
-  total += transport;
-  rows += `<tr class="transport-row">
-    <td>交通費（捷運＋公車）</td>
-    <td>NT$<input type="number" value="${transport}" min="0" max="9999"
-      onchange="setTransport(this.value)" title="可自行修改"></td>
-  </tr>`;
-  rows += `<tr class="total-row">
-    <td>合計</td>
-    <td>NT$${total.toLocaleString()}</td>
-  </tr>`;
-  tbody.innerHTML = rows;
-}
-
-function updateStepDur(iid, val) {
-  const v = Math.max(5, Math.min(720, parseInt(val) || 60));
-  const itin = loadItin() || [];
-  const item = itin.find(x => x.iid === iid);
-  if (item) { item.durMin = v; saveItin(itin); renderItinerary(load()); }
-}
-
-function updateStepTravel(iid, val) {
-  const v = Math.max(0, Math.min(180, parseInt(val) || 15));
-  const itin = loadItin() || [];
-  const item = itin.find(x => x.iid === iid);
-  if (item) { item.travelMin = v; saveItin(itin); renderItinerary(load()); }
-}
-
-function toggleReplace(iid) {
-  const panel = document.getElementById(`rp-${iid}`);
-  if (panel) panel.style.display = panel.style.display === "block" ? "none" : "block";
-}
-
-function replaceStep(iid, aid) {
-  if (!aid) return;
-  const data = load();
-  const a = data.find(x => x.id === parseInt(aid));
-  if (!a) return;
-  const itin = loadItin() || [];
-  const item = itin.find(x => x.iid === iid);
-  if (item) {
-    item.name = a.name;
-    item.duration = a.duration || "1 小時";
-    item.durMin = Math.round(parseDuration(a.duration || "1 小時"));
-    item.attractionId = a.id;
-    item.custom = false;
-    saveItin(itin);
-    renderItinerary(data);
-  }
-}
-
-function autoArrange() {
-  const data = load();
-  if (!data.length) return;
-  saveItin(buildAutoItin(data));
-  renderItinerary(data);
-}
-
-function addToItin(attractionId) {
-  const data = load();
-  const a = data.find(x => x.id === attractionId);
-  if (!a) return;
-  const itin = loadItin() || buildAutoItin(data);
-  if (itin.find(x => x.attractionId === attractionId)) {
-    alert(`「${a.name}」已在行程中`); return;
-  }
-  itin.push({ iid: Date.now(), name: a.name, duration: a.duration || "1 小時", durMin: Math.round(parseDuration(a.duration || "1 小時")), travelMin: TRAVEL, travelMode: "walk", budget: parsePrice(a.price), custom: false, attractionId });
-  saveItin(itin);
-  renderItinerary(data);
-}
-
-function removeStep(iid) {
-  const itin = loadItin() || [];
-  saveItin(itin.filter(x => x.iid !== iid));
-  renderItinerary(load());
-}
-
-function moveStep(iid, dir) {
-  const itin = loadItin() || [];
-  const i = itin.findIndex(x => x.iid === iid);
-  if (i + dir < 0 || i + dir >= itin.length) return;
-  [itin[i], itin[i + dir]] = [itin[i + dir], itin[i]];
-  saveItin(itin);
-  renderItinerary(load());
-}
-
-function openCustomStep() { document.getElementById("overlay-custom").classList.add("open"); }
-function closeCustomStep() { document.getElementById("overlay-custom").classList.remove("open"); }
-
-function saveCustomStep() {
-  const name = document.getElementById("cs-name").value.trim();
-  if (!name) { alert("請填寫項目名稱"); return; }
-  const duration = document.getElementById("cs-duration").value.trim() || "30 分鐘";
-  const travelMin = parseInt(document.getElementById("cs-travel").value) || 15;
-  const itin = loadItin() || buildAutoItin(load());
-  itin.push({ iid: Date.now(), name, duration, travelMin, custom: true, attractionId: null });
-  saveItin(itin);
-  closeCustomStep();
-  renderItinerary(load());
-}
-
-// ── 行程最佳化 ────────────────────────────────────────────────────────────────
-const SLOTS = [
-  { id: 0, label: "早餐",           color: "#FF9800", start: 6*60    },
-  { id: 1, label: "上午景點",       color: "#2196F3", start: 9*60+10 },
-  { id: 2, label: "午餐",           color: "#F44336", start: 12*60   },
-  { id: 3, label: "下午甜點＆咖啡", color: "#E91E63", start: 14*60   },
-  { id: 4, label: "傍晚",           color: "#FF5722", start: 17*60   },
-  { id: 5, label: "宵夜",           color: "#7B1FA2", start: 20*60   },
+const SLOTS=[
+  {id:0,label:"早餐",          color:"#FF9800",start:6*60},
+  {id:1,label:"上午景點",      color:"#2196F3",start:9*60+10},
+  {id:2,label:"午餐",          color:"#F44336",start:12*60},
+  {id:3,label:"下午甜點＆咖啡",color:"#E91E63",start:14*60},
+  {id:4,label:"傍晚",          color:"#FF5722",start:17*60},
+  {id:5,label:"宵夜",          color:"#7B1FA2",start:20*60},
 ];
-const TRAVEL = 15;
+const TRAVEL=15;
 
-function parseDuration(str) {
-  if (!str) return 60;
-  const mixed = str.match(/(\d+)\s*分鐘[–\-](\d+\.?\d*)\s*小時/);
-  if (mixed) return (parseInt(mixed[1]) + parseFloat(mixed[2]) * 60) / 2;
-  const hrRange = str.match(/(\d+\.?\d*)[–\-](\d+\.?\d*)\s*小時/);
-  if (hrRange) return ((parseFloat(hrRange[1]) + parseFloat(hrRange[2])) / 2) * 60;
-  const hrSingle = str.match(/(\d+\.?\d*)\s*小時/);
-  if (hrSingle) return parseFloat(hrSingle[1]) * 60;
-  const minRange = str.match(/(\d+)[–\-](\d+)\s*分鐘/);
-  if (minRange) return (parseInt(minRange[1]) + parseInt(minRange[2])) / 2;
-  const minSingle = str.match(/(\d+)\s*分鐘/);
-  if (minSingle) return parseInt(minSingle[1]);
+function parseDuration(str){
+  if(!str)return 60;
+  const mixed=str.match(/(\d+)\s*分鐘[–\-](\d+\.?\d*)\s*小時/);if(mixed)return(parseInt(mixed[1])+parseFloat(mixed[2])*60)/2;
+  const hrRange=str.match(/(\d+\.?\d*)[–\-](\d+\.?\d*)\s*小時/);if(hrRange)return((parseFloat(hrRange[1])+parseFloat(hrRange[2]))/2)*60;
+  const hrSingle=str.match(/(\d+\.?\d*)\s*小時/);if(hrSingle)return parseFloat(hrSingle[1])*60;
+  const minRange=str.match(/(\d+)[–\-](\d+)\s*分鐘/);if(minRange)return(parseInt(minRange[1])+parseInt(minRange[2]))/2;
+  const minSingle=str.match(/(\d+)\s*分鐘/);if(minSingle)return parseInt(minSingle[1]);
   return 60;
 }
-
-function fmt(min) {
-  const h = Math.floor(min / 60), m = min % 60;
-  return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;
-}
-
-function parseOpenTime(hoursStr) {
-  if (!hoursStr) return null;
-  const m = hoursStr.match(/^(\d+):(\d+)/);
-  return m ? parseInt(m[1]) * 60 + parseInt(m[2]) : null;
-}
-
-function slotOf(a) {
-  if (/冰品|宵夜/.test(a.name)) return 5;
-  if (/日落|夕陽|碼頭|漁人|港口/.test(a.name)) return 4;
-  if (a.category === "咖啡廳" || a.category === "甜點") return 3;
-  if (a.category === "美食") {
-    const open = parseOpenTime(a.hours);
-    return (open !== null && open < 9 * 60) ? 0 : 2;
-  }
+function fmt(min){const h=Math.floor(min/60),m=min%60;return`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;}
+function parseOpenTime(s){if(!s)return null;const m=s.match(/^(\d+):(\d+)/);return m?parseInt(m[1])*60+parseInt(m[2]):null;}
+function slotOf(a){
+  if(/冰品|宵夜/.test(a.name))return 5;
+  if(/日落|夕陽|碼頭|漁人|港口/.test(a.name))return 4;
+  if(a.category==="咖啡廳"||a.category==="甜點")return 3;
+  if(a.category==="美食"){const open=parseOpenTime(a.hours);return(open!==null&&open<9*60)?0:2;}
   return 1;
 }
-
-function optimizeItinerary(data) {
-  const groups = {};
-  SLOTS.forEach(s => { groups[s.id] = []; });
-  data.forEach(a => { groups[slotOf(a)].push(a); });
-  SLOTS.forEach(s => groups[s.id].sort((a, b) => b.rating - a.rating));
-
-  const result = [];
-  SLOTS.forEach(slot => {
-    const items = groups[slot.id];
-    if (!items.length) return;
-    let t = slot.start;
-    items.forEach((a, i) => {
-      const dur = Math.round(parseDuration(a.duration));
-      result.push({ ...a, startMin: t, startTime: fmt(t), endMin: t + dur, endTime: fmt(t + dur), slot: slot.id, slotLabel: slot.label, slotColor: slot.color });
-      t += dur + TRAVEL;
-    });
+function optimizeItinerary(data){
+  const groups={};SLOTS.forEach(s=>{groups[s.id]=[];});
+  data.forEach(a=>{groups[slotOf(a)].push(a);});
+  SLOTS.forEach(s=>groups[s.id].sort((a,b)=>b.rating-a.rating));
+  const result=[];
+  SLOTS.forEach(slot=>{
+    const items=groups[slot.id];if(!items.length)return;
+    let t=slot.start;
+    items.forEach(a=>{const dur=Math.round(parseDuration(a.duration));result.push({...a,startMin:t,startTime:fmt(t),endMin:t+dur,endTime:fmt(t+dur),slot:slot.id,slotLabel:slot.label,slotColor:slot.color});t+=dur+TRAVEL;});
   });
   return result;
 }
 
-function renderItinerary(data) {
-  const el = document.getElementById("itinerary");
-  if (data.length === 0) {
-    el.innerHTML = '<p style="color:#aaa;padding:16px;">尚無景點，請先新增</p>';
-    document.getElementById("itinerary-note").textContent = "";
-    return;
-  }
-
-  let itin = loadItin();
-  if (!itin) { itin = buildAutoItin(data); saveItin(itin); }
-
-  // 確保每個 item 都有 durMin / travelMode（相容舊資料）
-  itin.forEach(item => {
-    if (!item.durMin) item.durMin = Math.round(parseDuration(item.duration || "1 小時"));
-    if (!item.travelMode) item.travelMode = "walk";
-  });
-
-  let t = getStartMin();
-  const inItinIds = new Set(itin.map(x => x.attractionId).filter(Boolean));
-
-  document.querySelectorAll(".btn-add-itin").forEach(btn => {
-    const aid = parseInt(btn.dataset.id);
-    btn.textContent = inItinIds.has(aid) ? "已加入" : "加入行程";
-    btn.disabled = inItinIds.has(aid);
-    btn.style.opacity = inItinIds.has(aid) ? "0.5" : "1";
-  });
-
-  // 計算時間總計
-  const totalStay   = itin.reduce((s, x) => s + (x.durMin || 60), 0);
-  const totalTravel = itin.reduce((s, x, i) => s + (i < itin.length - 1 ? (x.travelMin ?? TRAVEL) : 0), 0);
-  const totalMin    = totalStay + totalTravel + 10;
-  const fmtDur = m => m >= 60 ? `${Math.floor(m/60)}h${m%60 ? (m%60)+"m" : ""}` : `${m}m`;
-
-  // 替換下拉選項
-  const replaceOptions = data.map(a =>
-    `<option value="${a.id}">${a.name}（${a.category} ${a.rating}★）</option>`
-  ).join("");
-
-  const startTime = fmt(t);
-  let html = `<div class="time-summary">
+function renderItinerary(data){
+  const el=document.getElementById("itinerary");
+  if(data.length===0){el.innerHTML='<p style="color:#aaa;padding:20px 16px;">尚無景點，請先新增</p>';document.getElementById("itinerary-note").textContent="";return;}
+  let itin=loadItin();if(!itin){itin=buildAutoItin(data);saveItin(itin);}
+  itin.forEach(item=>{if(!item.durMin)item.durMin=Math.round(parseDuration(item.duration||"1 小時"));if(!item.travelMode)item.travelMode="walk";});
+  let t=getStartMin();
+  const inItinIds=new Set(itin.map(x=>x.attractionId).filter(Boolean));
+  document.querySelectorAll(".btn-add-itin").forEach(btn=>{const aid=parseInt(btn.dataset.id);btn.textContent=inItinIds.has(aid)?"✓ 已加入":"加入行程";btn.disabled=inItinIds.has(aid);btn.style.opacity=inItinIds.has(aid)?"0.5":"1";});
+  const totalStay=itin.reduce((s,x)=>s+(x.durMin||60),0);
+  const totalTravel=itin.reduce((s,x,i)=>s+(i<itin.length-1?(x.travelMin??TRAVEL):0),0);
+  const totalMin=totalStay+totalTravel+10;
+  const fmtDur=m=>m>=60?`${Math.floor(m/60)}h${m%60?(m%60)+"m":""}`:`${m}m`;
+  const replaceOptions=data.map(a=>`<option value="${a.id}">${a.name}（${a.category} ${a.rating}★）</option>`).join("");
+  const startTime=fmt(t);
+  let html=`<div class="time-summary">
     <span>景點停留 <strong>${fmtDur(totalStay)}</strong></span>
     <span>移動時間 <strong>${fmtDur(totalTravel)}</strong></span>
     <span>全程合計 <strong>${fmtDur(totalMin)}</strong></span>
   </div>
-  <div class="step" style="border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
-    <span class="time">${startTime}</span><span class="step-name">捷運淡水站出發</span>
-  </div>`;
-  t += 10;
-
-  itin.forEach((item, idx) => {
-    const dur     = item.durMin || 60;
-    const travel  = item.travelMin ?? TRAVEL;
-    const startT  = fmt(t);
-    const isFirst = idx === 0;
-    const isLast  = idx === itin.length - 1;
-
-    const mode = item.travelMode || "walk";
-    html += `
+  <div class="step"><span class="time">${startTime}</span><span class="step-name">🚇 捷運淡水站出發</span></div>`;
+  t+=10;
+  itin.forEach((item,idx)=>{
+    const dur=item.durMin||60,travel=item.travelMin??TRAVEL,startT=fmt(t);
+    const isFirst=idx===0,isLast=idx===itin.length-1,mode=item.travelMode||"walk";
+    html+=`
     <div class="travel-gap-edit">
-      <select class="mode-sel" onchange="updateStepMode(${item.iid}, this.value)" title="選擇交通方式">
+      <select class="mode-sel" onchange="updateStepMode(${item.iid},this.value)">
         <option value="walk" ${mode==="walk"?"selected":""}>🚶 步行</option>
         <option value="car"  ${mode==="car" ?"selected":""}>🚗 汽車</option>
       </select>
-      <input type="number" value="${travel}" min="0" max="360"
-        onchange="updateStepTravel(${item.iid}, this.value)" title="移動時間（分鐘）">
-      分鐘
-      ${item.travelKm ? `<span class="travel-dist">${item.travelKm} km</span>` : ""}
+      <input type="number" value="${travel}" min="0" max="360" onchange="updateStepTravel(${item.iid},this.value)"> 分鐘
+      ${item.travelKm?`<span class="travel-dist">${item.travelKm} km</span>`:""}
     </div>
-    <div class="step in-itin" style="border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+    <div class="step in-itin">
       <div class="step-row-top">
         <div class="step-controls">
           <button class="btn-move" onclick="moveStep(${item.iid},-1)" ${isFirst?"disabled":""}>▲</button>
@@ -746,178 +513,100 @@ function renderItinerary(data) {
         <button class="btn-remove-step" onclick="removeStep(${item.iid})" title="移除">✕</button>
       </div>
       <div class="step-row-bottom">
-        <div class="dur-wrap">
-          停留
-          <input type="number" value="${dur}" min="5" max="720"
-            onchange="updateStepDur(${item.iid}, this.value)" title="停留時間（分鐘）">
-          分鐘
-        </div>
-        <div class="budget-wrap">
-          NT$<input type="number" value="${item.budget || 0}" min="0" max="99999"
-            onchange="updateStepBudget(${item.iid}, this.value)" title="預估花費（NT$）">
-        </div>
+        <div class="dur-wrap">停留 <input type="number" value="${dur}" min="5" max="720" onchange="updateStepDur(${item.iid},this.value)"> 分鐘</div>
+        <div class="budget-wrap">NT$<input type="number" value="${item.budget||0}" min="0" max="99999" onchange="updateStepBudget(${item.iid},this.value)"></div>
         <button class="btn-replace" onclick="toggleReplace(${item.iid})">替換</button>
       </div>
     </div>
     <div class="replace-panel" id="rp-${item.iid}">
-      <select onchange="replaceStep(${item.iid}, this.value)">
-        <option value="">── 選擇替換景點 ──</option>
-        ${replaceOptions}
+      <select onchange="replaceStep(${item.iid},this.value)">
+        <option value="">── 選擇替換景點 ──</option>${replaceOptions}
       </select>
     </div>`;
-    t += dur + travel;
+    t+=dur+travel;
   });
-
-  const returnTime = fmt(t);
-  html += `<div class="step return-step" style="margin-top:6px;">
-    <span class="time">${returnTime}</span>
-    <span class="step-name step-return">搭捷運返程</span>
-  </div>`;
-
-  el.innerHTML = html;
-  document.getElementById("itinerary-note").textContent =
-    `（${itin.length} 個行程項目，預計 ${returnTime} 返程）`;
+  html+=`<div class="step return-step"><span class="time">${fmt(t)}</span><span class="step-name step-return">🚇 搭捷運返程</span></div>`;
+  el.innerHTML=html;
+  document.getElementById("itinerary-note").textContent=`（${itin.length} 個項目，預計 ${fmt(t)} 返程）`;
   renderBudget();
 }
 
-function load() {
-  const raw = localStorage.getItem(KEY);
-  return raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULTS));
-}
+function load(){const raw=localStorage.getItem(KEY);return raw?JSON.parse(raw):JSON.parse(JSON.stringify(DEFAULTS));}
+function save(data){localStorage.setItem(KEY,JSON.stringify(data));}
+function stars(r){return"★".repeat(Math.floor(r))+(r%1>=0.5?"½":"")+" "+r;}
+function colorFor(cat){return CATEGORY_COLOR[cat]||"#607D8B";}
 
-function save(data) { localStorage.setItem(KEY, JSON.stringify(data)); }
-
-function stars(r) {
-  return "★".repeat(Math.floor(r)) + (r % 1 >= 0.5 ? "½" : "") + " " + r;
-}
-
-function colorFor(cat) { return CATEGORY_COLOR[cat] || "#607D8B"; }
-
-function render() {
-  const data = load();
+function render(){
+  const data=load();
   renderItinerary(data);
-  const container = document.getElementById("cards");
-  const filtersEl = document.getElementById("filters");
-
-  const cats = ["all", ...new Set(data.map(a => a.category))];
-  filtersEl.innerHTML = cats.map(c =>
-    `<button class="filter-btn ${activeFilter === c ? "active" : ""}" onclick="setFilter('${c}', this)">
-      ${c === "all" ? "全部" : c}
-    </button>`
-  ).join("");
-
-  const filtered = data
-    .filter(a => activeFilter === "all" || a.category === activeFilter)
-    .sort((a, b) => b.rating - a.rating);
-
-  if (filtered.length === 0) {
-    container.innerHTML = '<p class="empty-msg">目前沒有符合條件的景點</p>';
-  } else {
-    container.innerHTML = filtered.map(a => `
+  const container=document.getElementById("cards");
+  const filtersEl=document.getElementById("filters");
+  const cats=["all",...new Set(data.map(a=>a.category))];
+  filtersEl.innerHTML=cats.map(c=>`<button class="filter-btn ${activeFilter===c?"active":""}" onclick="setFilter('${c}',this)">${c==="all"?"全部":(CATEGORY_EMOJI[c]||"")+" "+c}</button>`).join("");
+  const filtered=data.filter(a=>activeFilter==="all"||a.category===activeFilter).sort((a,b)=>b.rating-a.rating);
+  if(filtered.length===0){container.innerHTML='<p class="empty-msg">目前沒有符合條件的景點</p>';}
+  else{
+    container.innerHTML=filtered.map(a=>`
       <div class="card">
         <div class="card-header" style="background:${colorFor(a.category)}">
-          <span class="category-tag">${a.category}</span>
-          <span class="rating-tag">${stars(a.rating)}</span>
+          <div class="card-header-top">
+            <span class="category-tag">${CATEGORY_EMOJI[a.category]||"📍"} ${a.category}</span>
+            <span class="rating-tag">★ ${a.rating}</span>
+          </div>
+          <div class="card-title">${a.name}</div>
         </div>
         <div class="card-body">
-          <h3>${a.name}</h3>
-          ${a.hours     ? `<div class="info-row"><span class="icon">🕐</span><span>${a.hours}</span></div>` : ""}
-          ${a.duration  ? `<div class="info-row"><span class="icon">⏱</span><span>${a.duration}</span></div>` : ""}
-          ${a.price     ? `<div class="info-row"><span class="icon">💰</span><span>${a.price}</span></div>` : ""}
-          ${a.transport ? `<div class="info-row"><span class="icon">🚌</span><span>${a.transport}</span></div>` : ""}
-          ${a.tips      ? `<div class="tips-box">💡 ${a.tips}</div>` : ""}
+          ${a.hours    ?`<div class="info-row"><span class="icon">🕐</span><span>${a.hours}</span></div>`:""}
+          ${a.duration ?`<div class="info-row"><span class="icon">⏱</span><span>${a.duration}</span></div>`:""}
+          ${a.price    ?`<div class="info-row"><span class="icon">💰</span><span>${a.price}</span></div>`:""}
+          ${a.transport?`<div class="info-row"><span class="icon">🚌</span><span>${a.transport}</span></div>`:""}
+          ${a.tips     ?`<div class="tips-box">💡 ${a.tips}</div>`:""}
         </div>
         <div class="card-actions">
           <button class="btn-add-itin" data-id="${a.id}" onclick="addToItin(${a.id})">加入行程</button>
           <button class="btn-edit" onclick="openModal(${a.id})">編輯</button>
           <button class="btn-del"  onclick="deleteAttraction(${a.id})">刪除</button>
         </div>
-      </div>
-    `).join("");
+      </div>`).join("");
   }
-
-  document.getElementById("subtitle").textContent = `共 ${data.length} 個景點`;
+  document.getElementById("subtitle").textContent=`共 ${data.length} 個景點`;
 }
 
-function setFilter(cat) { activeFilter = cat; render(); }
+function setFilter(cat){activeFilter=cat;render();}
 
-// ── CRUD ──────────────────────────────────────────────────────────────────────
-function openModal(id) {
-  editingId = id || null;
-  const data = load();
-  document.getElementById("modal-title").textContent = id ? "編輯景點" : "新增景點";
-  if (id) {
-    const a = data.find(x => x.id === id);
-    document.getElementById("f-name").value      = a.name;
-    document.getElementById("f-category").value  = a.category;
-    document.getElementById("f-rating").value    = a.rating;
-    document.getElementById("f-duration").value  = a.duration || "";
-    document.getElementById("f-price").value     = a.price || "";
-    document.getElementById("f-transport").value = a.transport || "";
-    document.getElementById("f-tips").value      = a.tips || "";
-  } else {
-    ["f-name","f-rating","f-duration","f-price","f-transport","f-tips"]
-      .forEach(fid => document.getElementById(fid).value = "");
-    document.getElementById("f-category").value = "景點";
-  }
+function openModal(id){
+  editingId=id||null;const data=load();
+  document.getElementById("modal-title").textContent=id?"編輯景點":"新增景點";
+  if(id){const a=data.find(x=>x.id===id);document.getElementById("f-name").value=a.name;document.getElementById("f-category").value=a.category;document.getElementById("f-rating").value=a.rating;document.getElementById("f-duration").value=a.duration||"";document.getElementById("f-price").value=a.price||"";document.getElementById("f-transport").value=a.transport||"";document.getElementById("f-tips").value=a.tips||"";}
+  else{["f-name","f-rating","f-duration","f-price","f-transport","f-tips"].forEach(fid=>document.getElementById(fid).value="");document.getElementById("f-category").value="景點";}
   document.getElementById("overlay").classList.add("open");
 }
+function closeModal(){document.getElementById("overlay").classList.remove("open");editingId=null;}
+function closeOnBg(e){if(e.target===document.getElementById("overlay"))closeModal();}
 
-function closeModal() {
-  document.getElementById("overlay").classList.remove("open");
-  editingId = null;
+function saveAttraction(){
+  const name=document.getElementById("f-name").value.trim();
+  const rating=parseFloat(document.getElementById("f-rating").value);
+  if(!name){alert("請填寫景點名稱");return;}
+  if(isNaN(rating)||rating<1||rating>5){alert("評分請填 1.0–5.0");return;}
+  const entry={name,category:document.getElementById("f-category").value,rating:Math.round(rating*10)/10,duration:document.getElementById("f-duration").value.trim(),price:document.getElementById("f-price").value.trim(),transport:document.getElementById("f-transport").value.trim(),tips:document.getElementById("f-tips").value.trim()};
+  const data=load();
+  if(editingId){const i=data.findIndex(x=>x.id===editingId);data[i]={...data[i],...entry};}
+  else{entry.id=Date.now();data.push(entry);}
+  save(data);closeModal();render();
 }
+function deleteAttraction(id){const data=load();const name=data.find(x=>x.id===id)?.name;if(!confirm(`確定刪除「${name}」？`))return;save(data.filter(x=>x.id!==id));render();}
+function resetData(){if(!confirm("還原所有預設景點？目前的新增與修改將會消失。"))return;localStorage.removeItem(KEY);activeFilter="all";render();}
 
-function closeOnBg(e) {
-  if (e.target === document.getElementById("overlay")) closeModal();
-}
-
-function saveAttraction() {
-  const name   = document.getElementById("f-name").value.trim();
-  const rating = parseFloat(document.getElementById("f-rating").value);
-  if (!name) { alert("請填寫景點名稱"); return; }
-  if (isNaN(rating) || rating < 1 || rating > 5) { alert("評分請填 1.0–5.0"); return; }
-
-  const entry = {
-    name,
-    category:  document.getElementById("f-category").value,
-    rating:    Math.round(rating * 10) / 10,
-    duration:  document.getElementById("f-duration").value.trim(),
-    price:     document.getElementById("f-price").value.trim(),
-    transport: document.getElementById("f-transport").value.trim(),
-    tips:      document.getElementById("f-tips").value.trim(),
-  };
-
-  const data = load();
-  if (editingId) {
-    const i = data.findIndex(x => x.id === editingId);
-    data[i] = { ...data[i], ...entry };
-  } else {
-    entry.id = Date.now();
-    data.push(entry);
-  }
-  save(data);
-  closeModal();
-  render();
-}
-
-function deleteAttraction(id) {
-  const data = load();
-  const name = data.find(x => x.id === id)?.name;
-  if (!confirm(`確定刪除「${name}」？`)) return;
-  save(data.filter(x => x.id !== id));
-  render();
-}
-
-function resetData() {
-  if (!confirm("還原所有預設景點？目前的新增與修改將會消失。")) return;
-  localStorage.removeItem(KEY);
-  activeFilter = "all";
-  render();
+function switchTab(name){
+  document.querySelectorAll(".tab-content").forEach(el=>el.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(el=>el.classList.remove("active"));
+  document.getElementById("tab-"+name).classList.add("active");
+  document.querySelector(`.tab-btn[data-tab="${name}"]`).classList.add("active");
+  if(name==="budget")renderBudget();
 }
 
 render();
-
 </script>
 </body>
 </html>
