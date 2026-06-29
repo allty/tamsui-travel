@@ -3,180 +3,380 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="淡水一日遊行程規劃工具，包含景點、美食、預算、交通建議">
 <title>淡水一日遊計畫</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
-  --blue: #1a73e8;
-  --blue-dk: #0d47a1;
-  --blue-lt: #e8f0fe;
-  --teal: #00acc1;
-  --bg: #f0f5ff;
-  --surface: #fff;
-  --text: #1e293b;
-  --muted: #64748b;
-  --border: #dde8ff;
-  --s1: 0 2px 8px rgba(26,115,232,.09), 0 1px 3px rgba(0,0,0,.06);
-  --s2: 0 4px 20px rgba(26,115,232,.13), 0 2px 8px rgba(0,0,0,.07);
-  --s3: 0 8px 32px rgba(26,115,232,.18), 0 4px 12px rgba(0,0,0,.1);
-  --r: 16px;
-  --r-sm: 12px;
+  /* ── 沿海色票 ── */
+  --ink:      #1a2332;
+  --navy:     #1c3d6e;
+  --navy-dk:  #0f2544;
+  --navy-lt:  #eaf1fb;
+  --sage:     #2a9a8c;
+  --sage-lt:  #e4f5f3;
+  --sand:     #f5f0e8;
+  --parchment:#fffcf7;
+  --muted:    #6b7888;
+  --border:   #e4dfd6;
+  --border-lt:#eeeae3;
+  /* ── 陰影（帶有藏藍色調） ── */
+  --s1: 0 2px 8px rgba(28,61,110,.08), 0 1px 2px rgba(0,0,0,.04);
+  --s2: 0 4px 20px rgba(28,61,110,.11), 0 2px 6px rgba(0,0,0,.05);
+  --s3: 0 8px 36px rgba(28,61,110,.16), 0 4px 10px rgba(0,0,0,.07);
+  --r:    16px;
+  --r-sm: 10px;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: "Noto Sans TC","Microsoft JhengHei",sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+* { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body {
+  font-family:"Plus Jakarta Sans","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  background:var(--sand);
+  color:var(--ink);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── Grain overlay ── */
+body::after {
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:999;
+  opacity:.025;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:200px 200px;
+}
 
 /* ── Header ── */
-header { background: linear-gradient(140deg,#1a73e8 0%,#0552d4 55%,#0d47a1 100%); color: white; padding: 36px 20px 0; text-align: center; position: relative; overflow: hidden; }
-header::before { content:""; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff' fill-opacity='.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E"); }
+header {
+  background:linear-gradient(155deg, #1c3d6e 0%, #0f2544 50%, #162f54 100%);
+  color:white;
+  padding:40px 20px 0;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+header::before {
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(ellipse 70% 60% at 20% 120%, rgba(42,154,140,.25) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% -20%, rgba(255,255,255,.06) 0%, transparent 60%);
+  pointer-events:none;
+}
 .header-inner { position:relative; z-index:1; }
-header h1 { font-size:1.9rem; font-weight:700; letter-spacing:.02em; margin-bottom:6px; text-shadow:0 2px 10px rgba(0,0,0,.2); }
-header .subtitle { opacity:.88; font-size:.88rem; margin-bottom:18px; }
-.header-stats { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:22px; }
-.stat-chip { background:rgba(255,255,255,.16); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.25); border-radius:20px; padding:5px 14px; font-size:.8rem; font-weight:500; }
+header h1 {
+  font-size:2.1rem;
+  font-weight:800;
+  letter-spacing:-.03em;
+  margin-bottom:6px;
+  text-shadow:0 2px 16px rgba(0,0,0,.25);
+  text-wrap:balance;
+}
+header .subtitle { opacity:.75; font-size:.88rem; font-weight:500; margin-bottom:20px; letter-spacing:.01em; }
+.header-stats { display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin-bottom:28px; }
+.stat-chip {
+  background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:6px;
+  padding:5px 14px;
+  font-size:.78rem;
+  font-weight:600;
+  letter-spacing:.03em;
+}
 .header-wave { display:block; width:100%; margin-bottom:-2px; }
 
 /* ── Tab nav ── */
-.tab-nav { position:sticky; top:0; z-index:50; background:var(--surface); border-bottom:1px solid var(--border); box-shadow:0 2px 12px rgba(26,115,232,.1); display:flex; justify-content:center; }
-.tab-btn { flex:1; max-width:160px; padding:13px 8px; border:none; background:none; cursor:pointer; font-size:.88rem; font-weight:600; color:var(--muted); border-bottom:3px solid transparent; transition:all .2s; font-family:inherit; display:flex; align-items:center; justify-content:center; gap:5px; }
-.tab-btn.active { color:var(--blue); border-bottom-color:var(--blue); }
-.tab-btn:hover:not(.active) { color:var(--text); background:#f8faff; }
+.tab-nav {
+  position:sticky;
+  top:0;
+  z-index:50;
+  background:var(--parchment);
+  border-bottom:1px solid var(--border);
+  box-shadow:0 1px 8px rgba(28,61,110,.07);
+  display:flex;
+  justify-content:center;
+}
+.tab-btn {
+  flex:1;
+  max-width:160px;
+  padding:14px 8px;
+  border:none;
+  background:none;
+  cursor:pointer;
+  font-size:.85rem;
+  font-weight:600;
+  color:var(--muted);
+  border-bottom:2.5px solid transparent;
+  transition:all .18s;
+  font-family:inherit;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  letter-spacing:.01em;
+}
+.tab-btn.active { color:var(--navy); border-bottom-color:var(--sage); }
+.tab-btn:hover:not(.active) { color:var(--ink); background:rgba(28,61,110,.04); }
 
 /* ── Tab content ── */
 .tab-content { display:none; }
 .tab-content.active { display:block; }
 
 /* ── Wrap ── */
-.wrap { max-width:960px; margin:0 auto; padding:22px 16px 32px; }
+.wrap { max-width:960px; margin:0 auto; padding:24px 16px 36px; }
 
 /* ── Section title ── */
-.section-title { font-size:1.05rem; font-weight:700; color:var(--text); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
-.section-title::before { content:""; width:4px; height:18px; background:var(--blue); border-radius:2px; flex-shrink:0; }
+.section-title {
+  font-size:1rem;
+  font-weight:700;
+  color:var(--muted);
+  margin-bottom:14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+.section-title::before { content:""; width:3px; height:16px; background:var(--sage); border-radius:2px; flex-shrink:0; }
 
 /* ── Itin toolbar ── */
-.itin-toolbar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px; background:var(--surface); border-radius:var(--r-sm); padding:14px 16px; box-shadow:var(--s1); }
-.itin-toolbar label { font-size:.85rem; color:var(--muted); display:flex; align-items:center; gap:8px; font-weight:500; }
-.itin-toolbar input[type=time] { padding:8px 10px; font-size:.9rem; border:1.5px solid var(--border); border-radius:8px; color:var(--text); font-family:inherit; background:#fafcff; }
-.itin-toolbar input[type=time]:focus { border-color:var(--blue); outline:none; }
-.btn-auto { padding:10px 20px; background:var(--blue); color:white; border:none; border-radius:20px; cursor:pointer; font-size:.88rem; font-weight:600; box-shadow:0 2px 8px rgba(26,115,232,.35); transition:all .2s; font-family:inherit; }
-.btn-auto:hover { background:#1557b0; box-shadow:0 4px 16px rgba(26,115,232,.4); transform:translateY(-1px); }
-.btn-custom { padding:10px 18px; background:white; color:var(--blue); border:2px solid var(--blue); border-radius:20px; cursor:pointer; font-size:.88rem; font-weight:600; transition:all .2s; font-family:inherit; }
-.btn-custom:hover { background:var(--blue-lt); }
+.itin-toolbar {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+  margin-bottom:14px;
+  background:var(--parchment);
+  border-radius:var(--r-sm);
+  padding:14px 16px;
+  box-shadow:var(--s1);
+  border:1px solid var(--border-lt);
+}
+.itin-toolbar label { font-size:.84rem; color:var(--muted); display:flex; align-items:center; gap:8px; font-weight:600; }
+.itin-toolbar input[type=time] { padding:8px 10px; font-size:.9rem; border:1.5px solid var(--border); border-radius:8px; color:var(--ink); font-family:inherit; background:var(--sand); }
+.itin-toolbar input[type=time]:focus { border-color:var(--navy); outline:none; }
+.btn-auto {
+  padding:10px 20px;
+  background:var(--navy);
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:.86rem;
+  font-weight:700;
+  box-shadow:0 2px 8px rgba(28,61,110,.3);
+  transition:all .18s;
+  font-family:inherit;
+  letter-spacing:.01em;
+}
+.btn-auto:hover { background:var(--navy-dk); transform:translateY(-1px); box-shadow:0 4px 14px rgba(28,61,110,.35); }
+.btn-auto:active { transform:translateY(1px); }
+.btn-custom {
+  padding:10px 18px;
+  background:transparent;
+  color:var(--navy);
+  border:1.5px solid var(--navy);
+  border-radius:8px;
+  cursor:pointer;
+  font-size:.86rem;
+  font-weight:700;
+  transition:all .18s;
+  font-family:inherit;
+}
+.btn-custom:hover { background:var(--navy-lt); }
 
 /* ── Itinerary ── */
 .itinerary { display:flex; flex-direction:column; gap:0; border-radius:var(--r-sm); overflow:hidden; box-shadow:var(--s2); }
-.time-summary { display:flex; flex-wrap:wrap; gap:10px; background:linear-gradient(135deg,#e8f0fe,#f0f5ff); padding:12px 16px; font-size:.83rem; color:var(--muted); border-bottom:1px solid var(--border); }
-.time-summary span { display:flex; align-items:center; gap:4px; }
-.time-summary strong { color:var(--blue); font-weight:700; }
-.step { display:flex; align-items:center; gap:10px; background:var(--surface); padding:12px 16px; border-bottom:1px solid #f0f4ff; }
-.time { font-weight:700; color:var(--blue); min-width:54px; font-size:.86rem; flex-shrink:0; font-variant-numeric:tabular-nums; }
-.step-name { flex:1; font-size:.92rem; color:var(--text); font-weight:500; }
-.return-step { background:#e8f0fe !important; }
-.step-return { color:var(--blue); font-style:italic; }
+.time-summary {
+  display:flex;
+  flex-wrap:wrap;
+  gap:16px;
+  background:var(--navy-dk);
+  padding:14px 18px;
+  font-size:.82rem;
+  color:rgba(255,255,255,.7);
+}
+.time-summary span { display:flex; align-items:center; gap:5px; }
+.time-summary strong { color:white; font-weight:700; font-size:.9rem; }
+.step { display:flex; align-items:center; gap:10px; background:var(--parchment); padding:13px 16px; border-bottom:1px solid var(--border-lt); }
+.time { font-weight:700; color:var(--navy); min-width:52px; font-size:.84rem; flex-shrink:0; font-variant-numeric:tabular-nums; }
+.step-name { flex:1; font-size:.92rem; color:var(--ink); font-weight:500; }
+.return-step { background:var(--navy-lt) !important; }
+.step-return { color:var(--navy); font-style:italic; font-weight:600; }
 
 /* Travel gap */
-.travel-gap-edit { background:#f8faff; padding:5px 16px 5px 36px; font-size:.75rem; color:var(--muted); border-bottom:1px solid #f0f4ff; display:flex; align-items:center; gap:6px; flex-wrap:wrap; border-left:3px solid var(--border); }
-.travel-gap-edit input { width:44px; padding:3px 5px; border:1.5px solid var(--border); border-radius:6px; font-size:.76rem; text-align:center; color:var(--text); font-family:inherit; }
-.travel-gap-edit input:focus { border-color:var(--blue); outline:none; }
-.mode-sel { padding:3px 8px; border:1.5px solid var(--border); border-radius:8px; font-size:.78rem; cursor:pointer; background:white; color:var(--muted); font-family:inherit; }
-.mode-sel:focus { outline:none; border-color:var(--blue); }
+.travel-gap-edit {
+  background:#f9f7f3;
+  padding:6px 16px 6px 32px;
+  font-size:.75rem;
+  color:var(--muted);
+  border-bottom:1px solid var(--border-lt);
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-wrap:wrap;
+  border-left:2px solid var(--border);
+}
+.travel-gap-edit input { width:44px; padding:3px 5px; border:1.5px solid var(--border); border-radius:5px; font-size:.76rem; text-align:center; color:var(--ink); font-family:inherit; background:white; }
+.travel-gap-edit input:focus { border-color:var(--navy); outline:none; }
+.mode-sel { padding:3px 8px; border:1.5px solid var(--border); border-radius:6px; font-size:.76rem; cursor:pointer; background:white; color:var(--muted); font-family:inherit; }
+.mode-sel:focus { outline:none; border-color:var(--navy); }
 .travel-dist { font-size:.7rem; color:#aaa; }
 
 /* In-itin step */
-.step.in-itin { flex-direction:column; align-items:stretch; gap:0; background:white; padding:12px 16px; border-left:3px solid var(--blue); transition:border-color .2s; }
-.step.in-itin:hover { border-left-color:var(--teal); }
+.step.in-itin {
+  flex-direction:column;
+  align-items:stretch;
+  gap:0;
+  background:var(--parchment);
+  padding:13px 16px;
+  border-left:3px solid var(--sage);
+  transition:border-color .2s, background .2s;
+}
+.step.in-itin:hover { background:#fefcf9; border-left-color:var(--navy); }
 .step-row-top { display:flex; align-items:center; gap:8px; }
-.step-row-bottom { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:8px; padding-top:8px; border-top:1px solid #f0f4ff; }
-.step-controls { display:flex; gap:4px; flex-shrink:0; }
-.btn-move { width:32px; height:32px; border:1.5px solid var(--border); background:white; border-radius:8px; cursor:pointer; font-size:.82rem; color:var(--blue); transition:all .15s; }
-.btn-move:hover { background:var(--blue-lt); border-color:var(--blue); }
-.btn-move:disabled { opacity:.3; cursor:default; }
-.btn-remove-step { width:32px; height:32px; border:1.5px solid #eee; background:white; border-radius:8px; cursor:pointer; font-size:.82rem; color:#bbb; margin-left:auto; flex-shrink:0; transition:all .15s; }
+.step-row-bottom { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:8px; padding-top:8px; border-top:1px solid var(--border-lt); }
+.step-controls { display:flex; gap:3px; flex-shrink:0; }
+.btn-move { width:30px; height:30px; border:1.5px solid var(--border); background:white; border-radius:6px; cursor:pointer; font-size:.8rem; color:var(--navy); transition:all .15s; }
+.btn-move:hover { background:var(--navy-lt); border-color:var(--navy); }
+.btn-move:disabled { opacity:.25; cursor:default; }
+.btn-remove-step { width:30px; height:30px; border:1.5px solid var(--border-lt); background:white; border-radius:6px; cursor:pointer; font-size:.78rem; color:#b0b8c4; margin-left:auto; flex-shrink:0; transition:all .15s; }
 .btn-remove-step:hover { background:#fff0f0; border-color:#e57373; color:#e57373; }
-.custom-step-name { color:#888; font-style:italic; }
-.dur-wrap { display:flex; align-items:center; gap:4px; font-size:.8rem; color:var(--muted); white-space:nowrap; }
-.dur-wrap input { width:54px; padding:5px 6px; border:1.5px solid var(--border); border-radius:6px; font-size:.82rem; text-align:center; color:var(--text); font-family:inherit; }
-.dur-wrap input:focus { border-color:var(--blue); outline:none; }
-.budget-wrap { display:flex; align-items:center; gap:3px; font-size:.8rem; color:var(--muted); white-space:nowrap; }
-.budget-wrap input { width:68px; padding:5px 6px; border:1.5px solid var(--border); border-radius:6px; font-size:.82rem; text-align:right; color:var(--text); font-family:inherit; }
-.budget-wrap input:focus { border-color:var(--blue); outline:none; }
-.replace-panel { background:#f8faff; border:1.5px solid var(--border); border-radius:10px; padding:8px 12px; margin:2px 0; display:none; }
-.replace-panel select { width:100%; padding:8px 10px; border:1.5px solid var(--border); border-radius:8px; font-size:.88rem; color:var(--text); font-family:inherit; }
-.btn-replace { padding:5px 14px; border:1.5px solid var(--blue); color:var(--blue); background:white; border-radius:20px; cursor:pointer; font-size:.8rem; white-space:nowrap; transition:all .15s; font-family:inherit; }
-.btn-replace:hover { background:var(--blue-lt); }
+.custom-step-name { color:var(--muted); font-style:italic; }
+.dur-wrap { display:flex; align-items:center; gap:4px; font-size:.79rem; color:var(--muted); white-space:nowrap; font-weight:500; }
+.dur-wrap input { width:52px; padding:4px 6px; border:1.5px solid var(--border); border-radius:5px; font-size:.8rem; text-align:center; color:var(--ink); font-family:inherit; background:white; }
+.dur-wrap input:focus { border-color:var(--navy); outline:none; }
+.budget-wrap { display:flex; align-items:center; gap:3px; font-size:.79rem; color:var(--muted); white-space:nowrap; font-weight:500; }
+.budget-wrap input { width:66px; padding:4px 6px; border:1.5px solid var(--border); border-radius:5px; font-size:.8rem; text-align:right; color:var(--ink); font-family:inherit; background:white; }
+.budget-wrap input:focus { border-color:var(--navy); outline:none; }
+.replace-panel { background:var(--sand); border:1.5px solid var(--border); border-radius:8px; padding:8px 12px; margin:2px 0; display:none; }
+.replace-panel select { width:100%; padding:8px 10px; border:1.5px solid var(--border); border-radius:6px; font-size:.88rem; color:var(--ink); font-family:inherit; background:white; }
+.btn-replace { padding:5px 14px; border:1.5px solid var(--navy); color:var(--navy); background:white; border-radius:6px; cursor:pointer; font-size:.79rem; white-space:nowrap; transition:all .15s; font-family:inherit; font-weight:600; }
+.btn-replace:hover { background:var(--navy-lt); }
 
 /* ── Toolbar ── */
 .toolbar { display:flex; flex-direction:column; gap:10px; margin-bottom:18px; }
-.filters { display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:6px; scrollbar-width:none; }
+.filters { display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:4px; scrollbar-width:none; }
 .filters::-webkit-scrollbar { display:none; }
-.filter-btn { padding:8px 18px; border:1.5px solid var(--border); border-radius:20px; background:white; color:var(--muted); cursor:pointer; font-size:.84rem; font-weight:500; transition:all .2s; white-space:nowrap; flex-shrink:0; min-height:40px; font-family:inherit; box-shadow:var(--s1); }
-.filter-btn.active,.filter-btn:hover { background:var(--blue); color:white; border-color:var(--blue); box-shadow:0 2px 8px rgba(26,115,232,.3); }
+.filter-btn {
+  padding:7px 16px;
+  border:1.5px solid var(--border);
+  border-radius:6px;
+  background:var(--parchment);
+  color:var(--muted);
+  cursor:pointer;
+  font-size:.82rem;
+  font-weight:600;
+  transition:all .18s;
+  white-space:nowrap;
+  flex-shrink:0;
+  min-height:38px;
+  font-family:inherit;
+  letter-spacing:.01em;
+}
+.filter-btn.active,.filter-btn:hover { background:var(--navy); color:white; border-color:var(--navy); box-shadow:0 2px 8px rgba(28,61,110,.25); }
 .toolbar-actions { display:flex; gap:10px; }
-.btn-add { padding:10px 22px; background:var(--blue); color:white; border:none; border-radius:20px; cursor:pointer; font-size:.9rem; font-weight:700; box-shadow:0 2px 10px rgba(26,115,232,.35); transition:all .2s; white-space:nowrap; min-height:44px; font-family:inherit; }
-.btn-add:hover { background:#1557b0; transform:translateY(-1px); box-shadow:0 4px 16px rgba(26,115,232,.4); }
-.btn-reset { padding:10px 16px; background:white; color:var(--muted); border:1.5px solid var(--border); border-radius:20px; cursor:pointer; font-size:.85rem; min-height:40px; font-family:inherit; box-shadow:var(--s1); transition:all .2s; }
-.btn-reset:hover { color:var(--blue); border-color:var(--blue); }
+.btn-add {
+  padding:10px 22px;
+  background:var(--navy);
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:.88rem;
+  font-weight:700;
+  box-shadow:0 2px 10px rgba(28,61,110,.3);
+  transition:all .18s;
+  white-space:nowrap;
+  min-height:42px;
+  font-family:inherit;
+}
+.btn-add:hover { background:var(--navy-dk); transform:translateY(-1px); }
+.btn-add:active { transform:translateY(1px); }
+.btn-reset {
+  padding:10px 16px;
+  background:var(--parchment);
+  color:var(--muted);
+  border:1.5px solid var(--border);
+  border-radius:8px;
+  cursor:pointer;
+  font-size:.85rem;
+  font-weight:600;
+  min-height:42px;
+  font-family:inherit;
+  transition:all .18s;
+}
+.btn-reset:hover { color:var(--navy); border-color:var(--navy); }
 
 /* ── Cards ── */
 .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px; }
-.card { background:white; border-radius:var(--r); overflow:hidden; box-shadow:var(--s1); transition:all .25s; }
-.card:hover { transform:translateY(-5px); box-shadow:var(--s3); }
-.card-header { padding:18px 16px 14px; color:white; position:relative; overflow:hidden; }
-.card-header::after { content:""; position:absolute; right:-16px; bottom:-16px; width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,.1); pointer-events:none; }
-.card-header-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
-.category-tag { font-size:.75rem; background:rgba(255,255,255,.22); border:1px solid rgba(255,255,255,.3); padding:3px 10px; border-radius:20px; font-weight:500; }
-.rating-tag { font-size:.95rem; font-weight:700; }
-.card-title { font-size:1.1rem; font-weight:700; text-shadow:0 1px 4px rgba(0,0,0,.15); }
-.card-body { padding:14px 16px 8px; }
-.info-row { display:flex; gap:8px; margin-bottom:6px; font-size:.83rem; color:var(--muted); align-items:flex-start; }
-.icon { width:20px; text-align:center; flex-shrink:0; }
-.tips-box { margin-top:10px; font-size:.81rem; color:var(--blue); background:var(--blue-lt); padding:8px 12px; border-radius:10px; line-height:1.6; border-left:3px solid var(--blue); }
-.card-actions { display:flex; gap:8px; padding:10px 16px 14px; }
-.btn-add-itin { flex:2; padding:9px 6px; border:1.5px solid var(--blue); color:var(--blue); background:white; border-radius:10px; cursor:pointer; font-size:.84rem; font-weight:600; transition:all .15s; min-height:40px; font-family:inherit; }
-.btn-add-itin:hover { background:var(--blue-lt); }
-.btn-add-itin:disabled { opacity:.4; cursor:default; }
-.btn-edit { flex:1; padding:9px 6px; border:1.5px solid var(--border); color:var(--muted); background:white; border-radius:10px; cursor:pointer; font-size:.84rem; min-height:40px; font-family:inherit; transition:all .15s; }
-.btn-edit:hover { color:var(--blue); border-color:var(--blue); background:var(--blue-lt); }
-.btn-del { flex:1; padding:9px 6px; border:1.5px solid var(--border); color:var(--muted); background:white; border-radius:10px; cursor:pointer; font-size:.84rem; min-height:40px; font-family:inherit; transition:all .15s; }
-.btn-del:hover { border-color:#e57373; color:#e57373; background:#fff0f0; }
+.card { background:var(--parchment); border-radius:var(--r); overflow:hidden; box-shadow:var(--s1); border:1px solid rgba(0,0,0,.04); transition:all .22s; }
+.card:hover { transform:translateY(-4px); box-shadow:var(--s3); }
+.card-header { padding:20px 18px 16px; color:white; position:relative; overflow:hidden; }
+.card-header::after { content:""; position:absolute; right:-24px; top:-24px; width:96px; height:96px; border-radius:50%; background:rgba(255,255,255,.08); pointer-events:none; }
+.card-header-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+.category-tag { font-size:.72rem; background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.28); padding:3px 10px; border-radius:4px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+.rating-tag { font-size:.9rem; font-weight:800; opacity:.95; }
+.card-title { font-size:1.05rem; font-weight:700; text-shadow:0 1px 6px rgba(0,0,0,.15); letter-spacing:-.01em; }
+.card-body { padding:14px 18px 8px; }
+.info-row { display:flex; gap:8px; margin-bottom:6px; font-size:.82rem; color:var(--muted); align-items:flex-start; }
+.icon { width:18px; text-align:center; flex-shrink:0; font-size:.85rem; margin-top:1px; }
+.tips-box { margin-top:10px; font-size:.8rem; color:#3a6e68; background:var(--sage-lt); padding:9px 12px; border-radius:8px; line-height:1.65; border-left:3px solid var(--sage); font-weight:500; }
+.card-actions { display:flex; gap:8px; padding:10px 18px 14px; }
+.btn-add-itin { flex:2; padding:9px 6px; border:1.5px solid var(--navy); color:var(--navy); background:transparent; border-radius:7px; cursor:pointer; font-size:.82rem; font-weight:700; transition:all .15s; min-height:40px; font-family:inherit; }
+.btn-add-itin:hover { background:var(--navy-lt); }
+.btn-add-itin:disabled { opacity:.38; cursor:default; }
+.btn-edit { flex:1; padding:9px 6px; border:1.5px solid var(--border); color:var(--muted); background:transparent; border-radius:7px; cursor:pointer; font-size:.82rem; font-weight:600; min-height:40px; font-family:inherit; transition:all .15s; }
+.btn-edit:hover { color:var(--navy); border-color:var(--navy); background:var(--navy-lt); }
+.btn-del { flex:1; padding:9px 6px; border:1.5px solid var(--border); color:var(--muted); background:transparent; border-radius:7px; cursor:pointer; font-size:.82rem; font-weight:600; min-height:40px; font-family:inherit; transition:all .15s; }
+.btn-del:hover { border-color:#e57373; color:#c0392b; background:#fff5f5; }
 
 /* ── Budget ── */
-.budget-card { background:white; border-radius:var(--r); overflow:hidden; box-shadow:var(--s1); }
+.budget-card { background:var(--parchment); border-radius:var(--r); overflow:hidden; box-shadow:var(--s2); border:1px solid rgba(0,0,0,.04); }
 table { width:100%; border-collapse:collapse; }
-td { padding:13px 20px; border-bottom:1px solid #f4f6ff; font-size:.92rem; }
+td { padding:13px 20px; border-bottom:1px solid var(--border-lt); font-size:.9rem; }
 tr:last-child td { border:none; }
-#budget-table td:last-child { text-align:right; font-variant-numeric:tabular-nums; }
-#budget-table .total-row td { font-weight:700; background:linear-gradient(135deg,var(--blue-lt),#f0f5ff); color:var(--blue); font-size:1rem; }
-#budget-table .transport-row td:last-child input { width:74px; padding:5px 8px; border:1.5px solid var(--border); border-radius:8px; font-size:.9rem; text-align:right; color:var(--text); font-family:inherit; }
-#budget-table .transport-row td:last-child input:focus { border-color:var(--blue); outline:none; }
+#budget-table td:last-child { text-align:right; font-variant-numeric:tabular-nums; font-weight:500; }
+#budget-table .total-row td { font-weight:700; background:var(--navy-dk); color:white; font-size:.95rem; }
+#budget-table .transport-row td:last-child input { width:74px; padding:5px 8px; border:1.5px solid var(--border); border-radius:7px; font-size:.9rem; text-align:right; color:var(--ink); font-family:inherit; background:var(--sand); }
+#budget-table .transport-row td:last-child input:focus { border-color:var(--navy); outline:none; }
 
 /* ── Modal ── */
-.overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,.6); z-index:100; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+.overlay { display:none; position:fixed; inset:0; background:rgba(10,18,30,.65); z-index:100; align-items:center; justify-content:center; backdrop-filter:blur(6px); }
 .overlay.open { display:flex; }
-.modal { background:white; border-radius:var(--r); width:480px; max-width:95vw; max-height:90vh; overflow-y:auto; box-shadow:0 16px 64px rgba(0,0,0,.25); animation:slideUp .22s ease; }
-@keyframes slideUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
-.modal-head { background:linear-gradient(135deg,var(--blue),var(--blue-dk)); padding:20px 24px; border-radius:var(--r) var(--r) 0 0; }
-.modal h3 { margin:0; font-size:1.1rem; color:white; font-weight:700; }
+.modal { background:var(--parchment); border-radius:var(--r); width:480px; max-width:95vw; max-height:90vh; overflow-y:auto; box-shadow:0 20px 72px rgba(0,0,0,.28); animation:slideUp .2s ease; border:1px solid rgba(0,0,0,.05); }
+@keyframes slideUp { from { opacity:0; transform:translateY(16px) scale(.98); } to { opacity:1; transform:translateY(0) scale(1); } }
+.modal-head { background:linear-gradient(135deg,var(--navy),var(--navy-dk)); padding:20px 24px; border-radius:var(--r) var(--r) 0 0; }
+.modal h3 { margin:0; font-size:1.05rem; color:white; font-weight:700; letter-spacing:-.01em; }
 .modal-body { padding:22px 24px 28px; }
 .form-group { margin-bottom:14px; }
-label { display:block; font-size:.84rem; color:var(--muted); margin-bottom:5px; font-weight:600; }
-input,select,textarea { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:10px; font-size:.95rem; font-family:inherit; color:var(--text); background:#fafcff; transition:border-color .2s,box-shadow .2s; }
-input:focus,select:focus,textarea:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(26,115,232,.12); background:white; }
-textarea { resize:vertical; min-height:70px; }
+label { display:block; font-size:.78rem; color:var(--muted); margin-bottom:5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+input,select,textarea { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:8px; font-size:.93rem; font-family:inherit; color:var(--ink); background:var(--sand); transition:border-color .18s,box-shadow .18s; }
+input:focus,select:focus,textarea:focus { outline:none; border-color:var(--navy); box-shadow:0 0 0 3px rgba(28,61,110,.1); background:white; }
+textarea { resize:vertical; min-height:72px; }
 .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .modal-actions { display:flex; gap:10px; margin-top:22px; }
-.btn-save { flex:1; padding:13px; background:var(--blue); color:white; border:none; border-radius:12px; cursor:pointer; font-size:1rem; font-weight:700; font-family:inherit; box-shadow:0 2px 10px rgba(26,115,232,.35); transition:all .2s; }
-.btn-save:hover { background:#1557b0; }
-.btn-cancel { padding:13px 20px; background:#f8faff; color:var(--muted); border:1.5px solid var(--border); border-radius:12px; cursor:pointer; font-size:1rem; font-family:inherit; transition:all .2s; }
-.btn-cancel:hover { border-color:var(--blue); color:var(--blue); }
+.btn-save { flex:1; padding:13px; background:var(--navy); color:white; border:none; border-radius:9px; cursor:pointer; font-size:.95rem; font-weight:700; font-family:inherit; box-shadow:0 2px 10px rgba(28,61,110,.3); transition:all .18s; }
+.btn-save:hover { background:var(--navy-dk); }
+.btn-save:active { transform:scale(.98); }
+.btn-cancel { padding:13px 20px; background:transparent; color:var(--muted); border:1.5px solid var(--border); border-radius:9px; cursor:pointer; font-size:.95rem; font-family:inherit; font-weight:600; transition:all .18s; }
+.btn-cancel:hover { border-color:var(--navy); color:var(--navy); }
 
 /* ── Footer ── */
-footer { text-align:center; padding:28px; color:var(--muted); font-size:.78rem; }
-.empty-msg { text-align:center; color:#ccc; padding:48px; grid-column:1/-1; }
+footer { text-align:center; padding:28px; color:var(--muted); font-size:.76rem; font-weight:500; }
+.empty-msg { text-align:center; color:#c0b8ad; padding:48px; grid-column:1/-1; font-weight:500; }
 
 /* ── Mobile ── */
 @media (max-width:600px) {
-  header h1 { font-size:1.45rem; }
-  header { padding:26px 16px 0; }
-  .tab-btn { font-size:.82rem; padding:12px 4px; gap:4px; }
+  header h1 { font-size:1.55rem; }
+  header { padding:28px 16px 0; }
+  .tab-btn { font-size:.8rem; padding:12px 4px; gap:3px; }
   .wrap { padding:16px 12px 28px; }
   .toolbar-actions { flex-direction:column; }
   .btn-add,.btn-reset { width:100%; text-align:center; }
@@ -185,8 +385,8 @@ footer { text-align:center; padding:28px; color:var(--muted); font-size:.78rem; 
   .btn-auto,.btn-custom { width:100%; text-align:center; }
   .cards { grid-template-columns:1fr; }
   .form-row { grid-template-columns:1fr; }
-  td { padding:10px 14px; font-size:.88rem; }
-  .btn-move,.btn-remove-step { width:36px; height:36px; }
+  td { padding:10px 14px; font-size:.87rem; }
+  .btn-move,.btn-remove-step { width:34px; height:34px; }
   .overlay { align-items:flex-end; }
   .modal { border-radius:var(--r) var(--r) 0 0; width:100%; max-width:100%; max-height:88vh; }
   .modal-head { border-radius:var(--r) var(--r) 0 0; }
@@ -207,7 +407,7 @@ footer { text-align:center; padding:28px; color:var(--muted); font-size:.78rem; 
     </div>
   </div>
   <svg class="header-wave" viewBox="0 0 1440 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M0,28 C240,56 480,0 720,28 C960,56 1200,0 1440,28 L1440,56 L0,56 Z" fill="#f0f5ff"/>
+    <path d="M0,28 C240,56 480,0 720,28 C960,56 1200,0 1440,28 L1440,56 L0,56 Z" fill="#f5f0e8"/>
   </svg>
 </header>
 
@@ -220,10 +420,10 @@ footer { text-align:center; padding:28px; color:var(--muted); font-size:.78rem; 
 <!-- 行程 -->
 <div class="tab-content active" id="tab-itinerary">
   <div class="wrap">
-    <div class="section-title">建議行程 <span id="itinerary-note" style="font-size:.78rem;font-weight:400;color:#888;margin-left:4px;"></span></div>
+    <div class="section-title">建議行程 <span id="itinerary-note" style="font-size:.78rem;font-weight:500;text-transform:none;letter-spacing:0;color:#9ba8b5;margin-left:4px;"></span></div>
     <div class="itin-toolbar">
       <label>⏰ 出發時間 <input type="time" id="start-time" value="09:00" onchange="renderItinerary(load())"></label>
-      <button class="btn-auto" onclick="autoArrange()">✨ 自動排列</button>
+      <button class="btn-auto" onclick="autoArrange()">✦ 自動排列</button>
       <button class="btn-custom" onclick="openCustomStep()">＋ 新增自訂</button>
     </div>
     <div class="itinerary" id="itinerary"></div>
@@ -236,7 +436,7 @@ footer { text-align:center; padding:28px; color:var(--muted); font-size:.78rem; 
     <div class="toolbar">
       <div class="filters" id="filters"></div>
       <div class="toolbar-actions">
-        <button class="btn-reset" onclick="resetData()">🔄 還原預設</button>
+        <button class="btn-reset" onclick="resetData()">↺ 還原預設</button>
         <button class="btn-add" onclick="openModal()">＋ 新增景點</button>
       </div>
     </div>
@@ -261,12 +461,12 @@ footer { text-align:center; padding:28px; color:var(--muted); font-size:.78rem; 
   <div class="modal">
     <div class="modal-head"><h3 id="modal-title">新增景點</h3></div>
     <div class="modal-body">
-      <div class="form-group"><label>景點名稱 *</label><input id="f-name" type="text" placeholder="例：淡水老街"></div>
+      <div class="form-group"><label>景點名稱</label><input id="f-name" type="text" placeholder="例：淡水老街"></div>
       <div class="form-row">
-        <div class="form-group"><label>類別 *</label>
+        <div class="form-group"><label>類別</label>
           <select id="f-category"><option>景點</option><option>古蹟</option><option>美食</option><option>咖啡廳</option><option>廟宇</option><option>其他</option></select>
         </div>
-        <div class="form-group"><label>評分（1.0–5.0）*</label><input id="f-rating" type="number" min="1" max="5" step="0.1" placeholder="4.2"></div>
+        <div class="form-group"><label>評分（1.0–5.0）</label><input id="f-rating" type="number" min="1" max="5" step="0.1" placeholder="4.2"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label>建議停留時間</label><input id="f-duration" type="text" placeholder="例：1–2 小時"></div>
@@ -287,7 +487,7 @@ footer { text-align:center; padding:28px; color:var(--muted); font-size:.78rem; 
   <div class="modal">
     <div class="modal-head"><h3>新增自訂行程項目</h3></div>
     <div class="modal-body">
-      <div class="form-group"><label>項目名稱 *（例：午休、移動至漁人碼頭）</label><input id="cs-name" type="text" placeholder="例：搭公車前往紅毛城"></div>
+      <div class="form-group"><label>項目名稱（例：午休、移動至漁人碼頭）</label><input id="cs-name" type="text" placeholder="例：搭公車前往紅毛城"></div>
       <div class="form-row">
         <div class="form-group"><label>所需時間</label><input id="cs-duration" type="text" placeholder="例：30 分鐘"></div>
         <div class="form-group"><label>移動時間（分鐘）</label><input id="cs-travel" type="number" value="15" min="0" max="120"></div>
@@ -302,8 +502,8 @@ footer { text-align:center; padding:28px; color:var(--muted); font-size:.78rem; 
 
 <script>
 const CATEGORY_COLOR = {
-  "景點":"#2196F3","古蹟":"#795548","美食":"#FF5722",
-  "甜點":"#E91E63","咖啡廳":"#8D6E63","廟宇":"#9C27B0","其他":"#607D8B"
+  "景點":"#2d6a8f","古蹟":"#6b4c3b","美食":"#b84a2b",
+  "甜點":"#9b3a6d","咖啡廳":"#7a5c4a","廟宇":"#634a85","其他":"#4a6070"
 };
 const CATEGORY_EMOJI = {
   "景點":"🏞️","古蹟":"🏯","美食":"🍜","甜點":"🧁","咖啡廳":"☕","廟宇":"⛩️","其他":"📍"
@@ -319,15 +519,15 @@ const DEFAULTS = [
   { id:7,  name:"得忌利士洋行",       category:"咖啡廳",rating:4.2, duration:"1–1.5 小時",    price:"飲品 NT$150–250，輕食 NT$200–350",  tips:"百年洋行改建，河景絕佳，適合下午茶",       transport:"淡水老街旁，中正路旁" },
   { id:8,  name:"滬尾砲台",           category:"古蹟",  rating:4.1, duration:"45 分鐘–1 小時",price:"免費",                              tips:"劉銘傳督建，可俯瞰淡水河口全景",           transport:"紅毛城步行約 10 分鐘" },
   { id:9,  name:"阿給原創老店",       category:"美食",  rating:4.1, duration:"20–30 分鐘",    price:"阿給 NT$35，魚丸湯 NT$30",           tips:"在地 60 年老店，老街必吃第一名",           transport:"老街巷內，中正路 209 巷" },
-  { id:10, name:"丹頂豆",             category:"甜點",  rating:4.9, duration:"20–30 分鐘",    price:"NT$40–100",   hours:"11:00–18:00",  tips:"社群最高評分 4.9★，必吃甜點",             transport:"淡水老街附近" },
+  { id:10, name:"丹頂豆",             category:"甜點",  rating:4.9, duration:"20–30 分鐘",    price:"NT$40–100",   hours:"11:00–18:00",  tips:"社群最高評分 4.9，必吃甜點",               transport:"淡水老街附近" },
   { id:11, name:"4F小飯館",           category:"美食",  rating:4.7, duration:"1–1.5 小時",    price:"人均 NT$800–1,600",hours:"11:30–21:00",tips:"高評分餐廳，建議事先預訂",               transport:"淡水區" },
   { id:12, name:"黑殿飯店",           category:"美食",  rating:4.6, duration:"45–60 分鐘",    price:"人均 NT$150–250",hours:"11:00–20:30", tips:"脊村排骨飯，社群第1名，多平台高讚推薦",   transport:"淡水區" },
-  { id:13, name:"讓靜甜點工作室",     category:"甜點",  rating:4.6, duration:"45–60 分鐘",    price:"NT$60–150",   hours:"13:00–19:00",  tips:"精緻手作甜點，IG 7.4K讚，社群第7名",     transport:"淡水區" },
+  { id:13, name:"讓靜甜點工作室",     category:"甜點",  rating:4.6, duration:"45–60 分鐘",    price:"NT$60–150",   hours:"13:00–19:00",  tips:"精緻手作甜點，IG 7.4K 讚，社群第7名",     transport:"淡水區" },
   { id:14, name:"貳樓餐廳",           category:"咖啡廳",rating:4.6, duration:"1–1.5 小時",    price:"人均 NT$200–400",hours:"10:00–21:00", tips:"景觀河景餐廳，適合下午茶與晚餐",           transport:"淡水區" },
-  { id:15, name:"緣味古早味現烤蛋糕", category:"甜點",  rating:4.5, duration:"20–30 分鐘",    price:"NT$110–150",  hours:"11:00–20:30",  tips:"韓國人瘋買，IG 180K讚，社群第2名",         transport:"淡水老街" },
+  { id:15, name:"緣味古早味現烤蛋糕", category:"甜點",  rating:4.5, duration:"20–30 分鐘",    price:"NT$110–150",  hours:"11:00–20:30",  tips:"韓國人瘋買，IG 180K 讚，社群第2名",         transport:"淡水老街" },
   { id:16, name:"文森食堂",           category:"咖啡廳",rating:4.5, duration:"1 小時",         price:"人均 NT$200–350",hours:"11:00–20:00", tips:"景觀咖啡廳，河岸美景",                     transport:"淡水區" },
-  { id:17, name:"天天咬吐司",         category:"美食",  rating:4.5, duration:"20–30 分鐘",    price:"NT$55–95",    hours:"06:15–13:30",  tips:"早餐必吃，IG 45K讚，社群第4名",           transport:"淡水英專路附近" },
-  { id:18, name:"阿忠花生捲冰淇淋",   category:"甜點",  rating:4.3, duration:"15–20 分鐘",    price:"NT$60–80",                          tips:"排隊必吃，IG 185K讚，老街名物",           transport:"淡水老街" },
+  { id:17, name:"天天咬吐司",         category:"美食",  rating:4.5, duration:"20–30 分鐘",    price:"NT$55–95",    hours:"06:15–13:30",  tips:"早餐必吃，IG 45K 讚，社群第4名",           transport:"淡水英專路附近" },
+  { id:18, name:"阿忠花生捲冰淇淋",   category:"甜點",  rating:4.3, duration:"15–20 分鐘",    price:"NT$60–80",                          tips:"排隊必吃，IG 185K 讚，老街名物",           transport:"淡水老街" },
   { id:19, name:"朝日夫婦冰品",       category:"甜點",  rating:4.3, duration:"20–30 分鐘",    price:"NT$80–120",                         tips:"宵夜首選，3天行程安排兩次",               transport:"淡水區" },
   { id:20, name:"麻吉奶奶餅奶麻糬",   category:"美食",  rating:4.2, duration:"15–20 分鐘",    price:"NT$30–60",                          tips:"老街經典，多平台推薦",                     transport:"淡水老街" },
   { id:21, name:"半坪屋手工糯米腸",   category:"美食",  rating:4.2, duration:"15–20 分鐘",    price:"NT$50–80",                          tips:"60年老店，多平台推薦",                     transport:"淡水老街" },
@@ -338,13 +538,10 @@ const COORDS={1:[25.16899,121.43750],2:[25.17565,121.43162],3:[25.17963,121.4205
 const travelCache={};
 
 async function fetchTravelTime(fromId,toId,mode){
-  const key=`${mode}-${fromId}-${toId}`;
-  if(travelCache[key])return travelCache[key];
-  const from=COORDS[fromId],to=COORDS[toId];
-  if(!from||!to)return null;
+  const key=`${mode}-${fromId}-${toId}`;if(travelCache[key])return travelCache[key];
+  const from=COORDS[fromId],to=COORDS[toId];if(!from||!to)return null;
   const url=`https://router.project-osrm.org/route/v1/driving/${from[1]},${from[0]};${to[1]},${to[0]}?overview=false`;
-  try{
-    const r=await fetch(url);const d=await r.json();
+  try{const r=await fetch(url);const d=await r.json();
     if(d.code==="Ok"&&d.routes&&d.routes.length){
       const distM=d.routes[0].distance,km=(distM/1000).toFixed(1);
       const mins=mode==="car"?Math.max(1,Math.ceil(d.routes[0].duration/60)):Math.max(1,Math.ceil(distM/80));
@@ -371,19 +568,12 @@ async function updateStepMode(iid,mode){
 }
 
 let editingId=null,activeFilter="all";
-
-if(localStorage.getItem(VERSION_KEY)!==DATA_VERSION){
-  localStorage.removeItem(KEY);localStorage.removeItem(ITIN_KEY);localStorage.setItem(VERSION_KEY,DATA_VERSION);
-}
+if(localStorage.getItem(VERSION_KEY)!==DATA_VERSION){localStorage.removeItem(KEY);localStorage.removeItem(ITIN_KEY);localStorage.setItem(VERSION_KEY,DATA_VERSION);}
 
 function loadItin(){const raw=localStorage.getItem(ITIN_KEY);return raw?JSON.parse(raw):null;}
 function saveItin(items){localStorage.setItem(ITIN_KEY,JSON.stringify(items));}
 function getStartMin(){const el=document.getElementById("start-time");if(!el||!el.value)return 9*60;const[h,m]=el.value.split(":").map(Number);return h*60+m;}
-
-function buildAutoItin(data){
-  const steps=optimizeItinerary(data);
-  return steps.map(s=>({iid:s.id||Date.now()+Math.random(),name:s.name,duration:s.duration||"1 小時",durMin:Math.round(parseDuration(s.duration||"1 小時")),travelMin:TRAVEL,travelMode:"walk",budget:parsePrice(s.price),custom:false,attractionId:s.id}));
-}
+function buildAutoItin(data){const steps=optimizeItinerary(data);return steps.map(s=>({iid:s.id||Date.now()+Math.random(),name:s.name,duration:s.duration||"1 小時",durMin:Math.round(parseDuration(s.duration||"1 小時")),travelMin:TRAVEL,travelMode:"walk",budget:parsePrice(s.price),custom:false,attractionId:s.id}));}
 function parsePrice(str){if(!str)return 0;if(/免費/.test(str))return 0;const m=str.match(/NT\$\s*(\d+)/);return m?parseInt(m[1]):0;}
 function updateStepBudget(iid,val){const v=Math.max(0,parseInt(val)||0);const itin=loadItin()||[];const item=itin.find(x=>x.iid===iid);if(item){item.budget=v;saveItin(itin);renderBudget();}}
 
@@ -404,72 +594,23 @@ function renderBudget(){
 function updateStepDur(iid,val){const v=Math.max(5,Math.min(720,parseInt(val)||60));const itin=loadItin()||[];const item=itin.find(x=>x.iid===iid);if(item){item.durMin=v;saveItin(itin);renderItinerary(load());}}
 function updateStepTravel(iid,val){const v=Math.max(0,Math.min(180,parseInt(val)||15));const itin=loadItin()||[];const item=itin.find(x=>x.iid===iid);if(item){item.travelMin=v;saveItin(itin);renderItinerary(load());}}
 function toggleReplace(iid){const panel=document.getElementById(`rp-${iid}`);if(panel)panel.style.display=panel.style.display==="block"?"none":"block";}
-function replaceStep(iid,aid){
-  if(!aid)return;const data=load();const a=data.find(x=>x.id===parseInt(aid));if(!a)return;
-  const itin=loadItin()||[];const item=itin.find(x=>x.iid===iid);
-  if(item){item.name=a.name;item.duration=a.duration||"1 小時";item.durMin=Math.round(parseDuration(a.duration||"1 小時"));item.attractionId=a.id;item.custom=false;saveItin(itin);renderItinerary(data);}
-}
+function replaceStep(iid,aid){if(!aid)return;const data=load();const a=data.find(x=>x.id===parseInt(aid));if(!a)return;const itin=loadItin()||[];const item=itin.find(x=>x.iid===iid);if(item){item.name=a.name;item.duration=a.duration||"1 小時";item.durMin=Math.round(parseDuration(a.duration||"1 小時"));item.attractionId=a.id;item.custom=false;saveItin(itin);renderItinerary(data);}}
 function autoArrange(){const data=load();if(!data.length)return;saveItin(buildAutoItin(data));renderItinerary(data);}
-function addToItin(attractionId){
-  const data=load();const a=data.find(x=>x.id===attractionId);if(!a)return;
-  const itin=loadItin()||buildAutoItin(data);
-  if(itin.find(x=>x.attractionId===attractionId)){alert(`「${a.name}」已在行程中`);return;}
-  itin.push({iid:Date.now(),name:a.name,duration:a.duration||"1 小時",durMin:Math.round(parseDuration(a.duration||"1 小時")),travelMin:TRAVEL,travelMode:"walk",budget:parsePrice(a.price),custom:false,attractionId});
-  saveItin(itin);renderItinerary(data);
-}
+function addToItin(attractionId){const data=load();const a=data.find(x=>x.id===attractionId);if(!a)return;const itin=loadItin()||buildAutoItin(data);if(itin.find(x=>x.attractionId===attractionId)){alert(`「${a.name}」已在行程中`);return;}itin.push({iid:Date.now(),name:a.name,duration:a.duration||"1 小時",durMin:Math.round(parseDuration(a.duration||"1 小時")),travelMin:TRAVEL,travelMode:"walk",budget:parsePrice(a.price),custom:false,attractionId});saveItin(itin);renderItinerary(data);}
 function removeStep(iid){const itin=loadItin()||[];saveItin(itin.filter(x=>x.iid!==iid));renderItinerary(load());}
 function moveStep(iid,dir){const itin=loadItin()||[];const i=itin.findIndex(x=>x.iid===iid);if(i+dir<0||i+dir>=itin.length)return;[itin[i],itin[i+dir]]=[itin[i+dir],itin[i]];saveItin(itin);renderItinerary(load());}
 function openCustomStep(){document.getElementById("overlay-custom").classList.add("open");}
 function closeCustomStep(){document.getElementById("overlay-custom").classList.remove("open");}
-function saveCustomStep(){
-  const name=document.getElementById("cs-name").value.trim();if(!name){alert("請填寫項目名稱");return;}
-  const duration=document.getElementById("cs-duration").value.trim()||"30 分鐘";
-  const travelMin=parseInt(document.getElementById("cs-travel").value)||15;
-  const itin=loadItin()||buildAutoItin(load());
-  itin.push({iid:Date.now(),name,duration,travelMin,custom:true,attractionId:null});
-  saveItin(itin);closeCustomStep();renderItinerary(load());
-}
+function saveCustomStep(){const name=document.getElementById("cs-name").value.trim();if(!name){alert("請填寫項目名稱");return;}const duration=document.getElementById("cs-duration").value.trim()||"30 分鐘";const travelMin=parseInt(document.getElementById("cs-travel").value)||15;const itin=loadItin()||buildAutoItin(load());itin.push({iid:Date.now(),name,duration,travelMin,custom:true,attractionId:null});saveItin(itin);closeCustomStep();renderItinerary(load());}
 
-const SLOTS=[
-  {id:0,label:"早餐",          color:"#FF9800",start:6*60},
-  {id:1,label:"上午景點",      color:"#2196F3",start:9*60+10},
-  {id:2,label:"午餐",          color:"#F44336",start:12*60},
-  {id:3,label:"下午甜點＆咖啡",color:"#E91E63",start:14*60},
-  {id:4,label:"傍晚",          color:"#FF5722",start:17*60},
-  {id:5,label:"宵夜",          color:"#7B1FA2",start:20*60},
-];
+const SLOTS=[{id:0,label:"早餐",color:"#FF9800",start:6*60},{id:1,label:"上午景點",color:"#2196F3",start:9*60+10},{id:2,label:"午餐",color:"#F44336",start:12*60},{id:3,label:"下午甜點＆咖啡",color:"#E91E63",start:14*60},{id:4,label:"傍晚",color:"#FF5722",start:17*60},{id:5,label:"宵夜",color:"#7B1FA2",start:20*60}];
 const TRAVEL=15;
 
-function parseDuration(str){
-  if(!str)return 60;
-  const mixed=str.match(/(\d+)\s*分鐘[–\-](\d+\.?\d*)\s*小時/);if(mixed)return(parseInt(mixed[1])+parseFloat(mixed[2])*60)/2;
-  const hrRange=str.match(/(\d+\.?\d*)[–\-](\d+\.?\d*)\s*小時/);if(hrRange)return((parseFloat(hrRange[1])+parseFloat(hrRange[2]))/2)*60;
-  const hrSingle=str.match(/(\d+\.?\d*)\s*小時/);if(hrSingle)return parseFloat(hrSingle[1])*60;
-  const minRange=str.match(/(\d+)[–\-](\d+)\s*分鐘/);if(minRange)return(parseInt(minRange[1])+parseInt(minRange[2]))/2;
-  const minSingle=str.match(/(\d+)\s*分鐘/);if(minSingle)return parseInt(minSingle[1]);
-  return 60;
-}
+function parseDuration(str){if(!str)return 60;const mixed=str.match(/(\d+)\s*分鐘[–\-](\d+\.?\d*)\s*小時/);if(mixed)return(parseInt(mixed[1])+parseFloat(mixed[2])*60)/2;const hrRange=str.match(/(\d+\.?\d*)[–\-](\d+\.?\d*)\s*小時/);if(hrRange)return((parseFloat(hrRange[1])+parseFloat(hrRange[2]))/2)*60;const hrSingle=str.match(/(\d+\.?\d*)\s*小時/);if(hrSingle)return parseFloat(hrSingle[1])*60;const minRange=str.match(/(\d+)[–\-](\d+)\s*分鐘/);if(minRange)return(parseInt(minRange[1])+parseInt(minRange[2]))/2;const minSingle=str.match(/(\d+)\s*分鐘/);if(minSingle)return parseInt(minSingle[1]);return 60;}
 function fmt(min){const h=Math.floor(min/60),m=min%60;return`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}`;}
 function parseOpenTime(s){if(!s)return null;const m=s.match(/^(\d+):(\d+)/);return m?parseInt(m[1])*60+parseInt(m[2]):null;}
-function slotOf(a){
-  if(/冰品|宵夜/.test(a.name))return 5;
-  if(/日落|夕陽|碼頭|漁人|港口/.test(a.name))return 4;
-  if(a.category==="咖啡廳"||a.category==="甜點")return 3;
-  if(a.category==="美食"){const open=parseOpenTime(a.hours);return(open!==null&&open<9*60)?0:2;}
-  return 1;
-}
-function optimizeItinerary(data){
-  const groups={};SLOTS.forEach(s=>{groups[s.id]=[];});
-  data.forEach(a=>{groups[slotOf(a)].push(a);});
-  SLOTS.forEach(s=>groups[s.id].sort((a,b)=>b.rating-a.rating));
-  const result=[];
-  SLOTS.forEach(slot=>{
-    const items=groups[slot.id];if(!items.length)return;
-    let t=slot.start;
-    items.forEach(a=>{const dur=Math.round(parseDuration(a.duration));result.push({...a,startMin:t,startTime:fmt(t),endMin:t+dur,endTime:fmt(t+dur),slot:slot.id,slotLabel:slot.label,slotColor:slot.color});t+=dur+TRAVEL;});
-  });
-  return result;
-}
+function slotOf(a){if(/冰品|宵夜/.test(a.name))return 5;if(/日落|夕陽|碼頭|漁人|港口/.test(a.name))return 4;if(a.category==="咖啡廳"||a.category==="甜點")return 3;if(a.category==="美食"){const open=parseOpenTime(a.hours);return(open!==null&&open<9*60)?0:2;}return 1;}
+function optimizeItinerary(data){const groups={};SLOTS.forEach(s=>{groups[s.id]=[];});data.forEach(a=>{groups[slotOf(a)].push(a);});SLOTS.forEach(s=>groups[s.id].sort((a,b)=>b.rating-a.rating));const result=[];SLOTS.forEach(slot=>{const items=groups[slot.id];if(!items.length)return;let t=slot.start;items.forEach(a=>{const dur=Math.round(parseDuration(a.duration));result.push({...a,startMin:t,startTime:fmt(t),endMin:t+dur,endTime:fmt(t+dur),slot:slot.id,slotLabel:slot.label,slotColor:slot.color});t+=dur+TRAVEL;});});return result;}
 
 function renderItinerary(data){
   const el=document.getElementById("itinerary");
@@ -478,12 +619,12 @@ function renderItinerary(data){
   itin.forEach(item=>{if(!item.durMin)item.durMin=Math.round(parseDuration(item.duration||"1 小時"));if(!item.travelMode)item.travelMode="walk";});
   let t=getStartMin();
   const inItinIds=new Set(itin.map(x=>x.attractionId).filter(Boolean));
-  document.querySelectorAll(".btn-add-itin").forEach(btn=>{const aid=parseInt(btn.dataset.id);btn.textContent=inItinIds.has(aid)?"✓ 已加入":"加入行程";btn.disabled=inItinIds.has(aid);btn.style.opacity=inItinIds.has(aid)?"0.5":"1";});
+  document.querySelectorAll(".btn-add-itin").forEach(btn=>{const aid=parseInt(btn.dataset.id);btn.textContent=inItinIds.has(aid)?"✓ 已加入":"加入行程";btn.disabled=inItinIds.has(aid);btn.style.opacity=inItinIds.has(aid)?"0.4":"1";});
   const totalStay=itin.reduce((s,x)=>s+(x.durMin||60),0);
   const totalTravel=itin.reduce((s,x,i)=>s+(i<itin.length-1?(x.travelMin??TRAVEL):0),0);
   const totalMin=totalStay+totalTravel+10;
   const fmtDur=m=>m>=60?`${Math.floor(m/60)}h${m%60?(m%60)+"m":""}`:`${m}m`;
-  const replaceOptions=data.map(a=>`<option value="${a.id}">${a.name}（${a.category} ${a.rating}★）</option>`).join("");
+  const replaceOptions=data.map(a=>`<option value="${a.id}">${a.name}（${a.category} ${a.rating}）</option>`).join("");
   const startTime=fmt(t);
   let html=`<div class="time-summary">
     <span>景點停留 <strong>${fmtDur(totalStay)}</strong></span>
@@ -536,13 +677,11 @@ function renderItinerary(data){
 function load(){const raw=localStorage.getItem(KEY);return raw?JSON.parse(raw):JSON.parse(JSON.stringify(DEFAULTS));}
 function save(data){localStorage.setItem(KEY,JSON.stringify(data));}
 function stars(r){return"★".repeat(Math.floor(r))+(r%1>=0.5?"½":"")+" "+r;}
-function colorFor(cat){return CATEGORY_COLOR[cat]||"#607D8B";}
+function colorFor(cat){return CATEGORY_COLOR[cat]||"#4a6070";}
 
 function render(){
-  const data=load();
-  renderItinerary(data);
-  const container=document.getElementById("cards");
-  const filtersEl=document.getElementById("filters");
+  const data=load();renderItinerary(data);
+  const container=document.getElementById("cards"),filtersEl=document.getElementById("filters");
   const cats=["all",...new Set(data.map(a=>a.category))];
   filtersEl.innerHTML=cats.map(c=>`<button class="filter-btn ${activeFilter===c?"active":""}" onclick="setFilter('${c}',this)">${c==="all"?"全部":(CATEGORY_EMOJI[c]||"")+" "+c}</button>`).join("");
   const filtered=data.filter(a=>activeFilter==="all"||a.category===activeFilter).sort((a,b)=>b.rating-a.rating);
@@ -550,7 +689,7 @@ function render(){
   else{
     container.innerHTML=filtered.map(a=>`
       <div class="card">
-        <div class="card-header" style="background:${colorFor(a.category)}">
+        <div class="card-header" style="background:linear-gradient(135deg,${colorFor(a.category)},${colorFor(a.category)}cc)">
           <div class="card-header-top">
             <span class="category-tag">${CATEGORY_EMOJI[a.category]||"📍"} ${a.category}</span>
             <span class="rating-tag">★ ${a.rating}</span>
@@ -575,38 +714,13 @@ function render(){
 }
 
 function setFilter(cat){activeFilter=cat;render();}
-
-function openModal(id){
-  editingId=id||null;const data=load();
-  document.getElementById("modal-title").textContent=id?"編輯景點":"新增景點";
-  if(id){const a=data.find(x=>x.id===id);document.getElementById("f-name").value=a.name;document.getElementById("f-category").value=a.category;document.getElementById("f-rating").value=a.rating;document.getElementById("f-duration").value=a.duration||"";document.getElementById("f-price").value=a.price||"";document.getElementById("f-transport").value=a.transport||"";document.getElementById("f-tips").value=a.tips||"";}
-  else{["f-name","f-rating","f-duration","f-price","f-transport","f-tips"].forEach(fid=>document.getElementById(fid).value="");document.getElementById("f-category").value="景點";}
-  document.getElementById("overlay").classList.add("open");
-}
+function openModal(id){editingId=id||null;const data=load();document.getElementById("modal-title").textContent=id?"編輯景點":"新增景點";if(id){const a=data.find(x=>x.id===id);document.getElementById("f-name").value=a.name;document.getElementById("f-category").value=a.category;document.getElementById("f-rating").value=a.rating;document.getElementById("f-duration").value=a.duration||"";document.getElementById("f-price").value=a.price||"";document.getElementById("f-transport").value=a.transport||"";document.getElementById("f-tips").value=a.tips||"";}else{["f-name","f-rating","f-duration","f-price","f-transport","f-tips"].forEach(fid=>document.getElementById(fid).value="");document.getElementById("f-category").value="景點";}document.getElementById("overlay").classList.add("open");}
 function closeModal(){document.getElementById("overlay").classList.remove("open");editingId=null;}
 function closeOnBg(e){if(e.target===document.getElementById("overlay"))closeModal();}
-
-function saveAttraction(){
-  const name=document.getElementById("f-name").value.trim();
-  const rating=parseFloat(document.getElementById("f-rating").value);
-  if(!name){alert("請填寫景點名稱");return;}
-  if(isNaN(rating)||rating<1||rating>5){alert("評分請填 1.0–5.0");return;}
-  const entry={name,category:document.getElementById("f-category").value,rating:Math.round(rating*10)/10,duration:document.getElementById("f-duration").value.trim(),price:document.getElementById("f-price").value.trim(),transport:document.getElementById("f-transport").value.trim(),tips:document.getElementById("f-tips").value.trim()};
-  const data=load();
-  if(editingId){const i=data.findIndex(x=>x.id===editingId);data[i]={...data[i],...entry};}
-  else{entry.id=Date.now();data.push(entry);}
-  save(data);closeModal();render();
-}
+function saveAttraction(){const name=document.getElementById("f-name").value.trim();const rating=parseFloat(document.getElementById("f-rating").value);if(!name){alert("請填寫景點名稱");return;}if(isNaN(rating)||rating<1||rating>5){alert("評分請填 1.0–5.0");return;}const entry={name,category:document.getElementById("f-category").value,rating:Math.round(rating*10)/10,duration:document.getElementById("f-duration").value.trim(),price:document.getElementById("f-price").value.trim(),transport:document.getElementById("f-transport").value.trim(),tips:document.getElementById("f-tips").value.trim()};const data=load();if(editingId){const i=data.findIndex(x=>x.id===editingId);data[i]={...data[i],...entry};}else{entry.id=Date.now();data.push(entry);}save(data);closeModal();render();}
 function deleteAttraction(id){const data=load();const name=data.find(x=>x.id===id)?.name;if(!confirm(`確定刪除「${name}」？`))return;save(data.filter(x=>x.id!==id));render();}
 function resetData(){if(!confirm("還原所有預設景點？目前的新增與修改將會消失。"))return;localStorage.removeItem(KEY);activeFilter="all";render();}
-
-function switchTab(name){
-  document.querySelectorAll(".tab-content").forEach(el=>el.classList.remove("active"));
-  document.querySelectorAll(".tab-btn").forEach(el=>el.classList.remove("active"));
-  document.getElementById("tab-"+name).classList.add("active");
-  document.querySelector(`.tab-btn[data-tab="${name}"]`).classList.add("active");
-  if(name==="budget")renderBudget();
-}
+function switchTab(name){document.querySelectorAll(".tab-content").forEach(el=>el.classList.remove("active"));document.querySelectorAll(".tab-btn").forEach(el=>el.classList.remove("active"));document.getElementById("tab-"+name).classList.add("active");document.querySelector(`.tab-btn[data-tab="${name}"]`).classList.add("active");if(name==="budget")renderBudget();}
 
 render();
 </script>
